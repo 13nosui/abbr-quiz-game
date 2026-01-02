@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>略語正式名称クイズ（ギャル語モード搭載）</title>
+    <title>略語正式名称クイズ（全モード搭載版）</title>
     <style>
-        /* ベース設定 */
+        /* --- ベース設定 --- */
         :root {
             --primary-color: #3498db;
             --primary-dark: #2980b9;
@@ -14,10 +14,26 @@
             --bg-color: #f0f4f8;
             --text-color: #333;
             
-            /* ギャルモード用カラー */
+            /* ギャルモード (Pink) */
             --gal-primary: #ff69b4;
             --gal-dark: #c71585;
             --gal-bg: #fff0f5;
+
+            /* 警察モード (Police Blue) */
+            --police-primary: #2c3e50;
+            --police-dark: #1a252f;
+            --police-bg: #e8ecef;
+            --police-accent: #f1c40f; /* バッジの金 */
+
+            /* ビジネスモード (Biz Navy) */
+            --biz-primary: #0047AB; /* Cobalt Blue */
+            --biz-dark: #003366;
+            --biz-bg: #f5f7fa;
+
+            /* オタクモード (Oshi Purple) */
+            --otaku-primary: #9b59b6;
+            --otaku-dark: #8e44ad;
+            --otaku-bg: #f3e5f5;
         }
 
         * { box-sizing: border-box; }
@@ -37,11 +53,26 @@
             transition: background-color 0.5s;
         }
 
-        /* ギャルモード時のスタイル上書き */
+        /* --- モード別テーマ適用 --- */
         body.gal-mode {
             background-color: var(--gal-bg);
             --primary-color: var(--gal-primary);
             --primary-dark: var(--gal-dark);
+        }
+        body.police-mode {
+            background-color: var(--police-bg);
+            --primary-color: var(--police-primary);
+            --primary-dark: var(--police-dark);
+        }
+        body.biz-mode {
+            background-color: var(--biz-bg);
+            --primary-color: var(--biz-primary);
+            --primary-dark: var(--biz-dark);
+        }
+        body.otaku-mode {
+            background-color: var(--otaku-bg);
+            --primary-color: var(--otaku-primary);
+            --primary-dark: var(--otaku-dark);
         }
 
         .container {
@@ -55,230 +86,101 @@
             position: relative;
         }
 
-        h1 {
-            color: #2c3e50;
-            margin-bottom: 0.5rem;
-            font-size: 1.5rem;
-        }
-
-        .subtitle {
-            color: #7f8c8d;
-            font-size: 0.9rem;
-            margin-bottom: 1.5rem;
-        }
+        h1 { color: #2c3e50; margin-bottom: 0.5rem; font-size: 1.5rem; }
+        .subtitle { color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1.5rem; }
 
         .screen { display: none; }
-        .screen.active { 
-            display: block; 
-            animation: fadeIn 0.3s ease-out; 
-        }
+        .screen.active { display: block; animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* メニューボタンスタイル */
+        /* メニューボタン */
         .menu-btn {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            margin: 10px 0;
-            padding: 1.2rem;
-            font-size: 1.1rem;
-            border-radius: 12px;
-            border: none;
-            cursor: pointer;
-            transition: transform 0.1s, box-shadow 0.2s;
-            font-weight: bold;
-            color: white;
-            text-align: left;
-            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+            display: flex; align-items: center; justify-content: space-between;
+            width: 100%; margin: 8px 0; padding: 1rem; font-size: 1rem;
+            border-radius: 12px; border: none; cursor: pointer;
+            transition: transform 0.1s; font-weight: bold; color: white;
+            text-align: left; box-shadow: 0 4px 0 rgba(0,0,0,0.1);
         }
-        
         .menu-btn:active { transform: translateY(4px); box-shadow: none; }
-        
+        .menu-desc { font-size: 0.75rem; font-weight: normal; margin-top: 2px; opacity: 0.9; display:block; }
+
+        /* ボタン色設定 */
         .btn-std { background-color: #3498db; box-shadow: 0 4px 0 #2980b9; }
         .btn-gal { background-color: #ff69b4; box-shadow: 0 4px 0 #c71585; }
-        
-        /* 時代選択ボタン */
-        .era-btn {
-            width: 100%;
-            margin: 8px 0;
-            padding: 1rem;
-            font-size: 1rem;
-            border-radius: 50px;
-            border: 2px solid #ff69b4;
-            background: white;
-            color: #ff69b4;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .era-btn:hover { background: #fff0f5; }
+        .btn-police { background-color: #2c3e50; box-shadow: 0 4px 0 #1a252f; border-left: 5px solid #f1c40f; }
+        .btn-biz { background-color: #0047AB; box-shadow: 0 4px 0 #003366; }
+        .btn-otaku { background-color: #9b59b6; box-shadow: 0 4px 0 #8e44ad; }
 
-        /* プレイモード選択 (4択/入力/みんな) */
-        .play-mode-selector {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            justify-content: center;
-        }
+        /* プレイモード選択 */
+        .play-mode-selector { display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; }
         .play-mode-btn {
-            padding: 8px 16px;
-            border: 1px solid #ccc;
-            border-radius: 20px;
-            background: white;
-            cursor: pointer;
-            font-size: 0.9rem;
+            padding: 8px 14px; border: 1px solid #ccc; border-radius: 20px;
+            background: white; cursor: pointer; font-size: 0.85rem;
         }
-        .play-mode-btn.selected {
-            background: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
+        .play-mode-btn.selected { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+
+        /* ギャル年代選択 */
+        .era-btn {
+            width: 100%; margin: 5px 0; padding: 0.8rem; font-size: 0.9rem;
+            border-radius: 50px; border: 2px solid #ff69b4;
+            background: white; color: #ff69b4; font-weight: bold; cursor: pointer;
         }
 
-        /* 問題表示部 */
+        /* 問題表示 */
         .question-box {
-            background-color: #eef2f7;
-            padding: 1.5rem;
-            border-radius: 10px;
-            margin-bottom: 1.5rem;
-            min-height: 140px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            position: relative;
+            background-color: #eef2f7; padding: 1.5rem; border-radius: 10px;
+            margin-bottom: 1.5rem; min-height: 140px; display: flex;
+            flex-direction: column; justify-content: center; align-items: center; position: relative;
         }
-        
         .badge {
-            position: absolute;
-            top: -10px;
-            right: 10px;
-            color: #fff;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: bold;
+            position: absolute; top: -10px; right: 10px; color: #fff;
+            padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        .badge-level { background: #f1c40f; }
-        .badge-era { background: #9b59b6; }
+        .abbr-text { font-size: 2.0rem; font-weight: bold; color: var(--primary-color); margin: 0; line-height: 1.2; }
 
-        .abbr-text {
-            font-size: 2.2rem;
-            font-weight: bold;
-            color: var(--primary-color);
-            margin: 0;
-            line-height: 1.2;
-        }
-
-        /* 選択肢ボタン */
-        .choices-container {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
+        /* 選択肢 */
+        .choices-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
         .choice-btn {
-            background-color: white;
-            border: 2px solid #bdc3c7;
-            color: #333;
-            padding: 15px;
-            font-size: 1rem;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: bold;
-            text-align: center;
-            transition: all 0.2s;
+            background-color: white; border: 2px solid #bdc3c7; color: #333;
+            padding: 14px; font-size: 0.95rem; border-radius: 10px;
+            cursor: pointer; font-weight: bold; transition: all 0.2s;
         }
-        .choice-btn.correct-choice {
-            background-color: var(--success-color) !important;
-            color: white !important;
-            border-color: var(--success-color) !important;
-        }
-        .choice-btn.wrong-choice {
-            background-color: var(--error-color) !important;
-            color: white !important;
-            border-color: var(--error-color) !important;
-        }
+        .choice-btn.correct-choice { background-color: var(--success-color) !important; color: white !important; border-color: var(--success-color) !important; }
+        .choice-btn.wrong-choice { background-color: var(--error-color) !important; color: white !important; border-color: var(--error-color) !important; }
 
         /* アクションボタン */
         .action-btn {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 14px 20px;
-            font-size: 1.1rem;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: bold;
-            width: 100%;
-            max-width: 300px;
-            box-shadow: 0 4px 0 var(--primary-dark);
+            background-color: var(--primary-color); color: white; border: none;
+            padding: 14px 20px; font-size: 1.1rem; border-radius: 50px;
+            cursor: pointer; font-weight: bold; width: 100%; max-width: 300px;
+            box-shadow: 0 4px 0 var(--primary-dark); margin-top: 10px;
         }
         .action-btn:active { transform: translateY(4px); box-shadow: none; }
 
         /* 入力フォーム */
         input[type="text"] {
-            width: 100%;
-            padding: 14px;
-            font-size: 1.2rem;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            text-align: center;
-            outline: none;
+            width: 100%; padding: 14px; font-size: 1.2rem; border: 2px solid #ddd;
+            border-radius: 8px; margin-bottom: 1rem; text-align: center; outline: none;
         }
-        input[type="text"]:focus { border-color: var(--primary-color); }
-
+        
         /* 結果表示 */
         .result-feedback-box {
-            background: #fafafa;
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 10px;
-            text-align: center;
-            border: 1px solid #eee;
+            background: #fafafa; padding: 20px; border-radius: 10px;
+            margin-top: 10px; text-align: center; border: 1px solid #eee;
         }
-        #result-message { font-size: 1.8rem; font-weight: bold; margin: 0.5rem 0; }
+        #result-message { font-size: 1.6rem; font-weight: bold; margin: 0.5rem 0; }
         .correct { color: var(--success-color); }
         .incorrect { color: var(--error-color); }
 
-        /* プログレスバー */
-        .progress-container {
-            width: 100%;
-            background-color: #eee;
-            height: 8px;
-            border-radius: 4px;
-            margin-bottom: 1.5rem;
-            overflow: hidden;
-        }
-        .progress-bar {
-            height: 100%;
-            background-color: var(--success-color);
-            width: 0%;
-            transition: width 0.3s;
-        }
-
-        /* 戻るリンク */
-        .back-link {
-            display: inline-block;
-            margin-top: 25px;
-            color: #999;
-            text-decoration: underline;
-            cursor: pointer;
-            font-size: 0.9rem;
-            padding: 10px;
-        }
-        
-        .toggle-desc { font-size: 0.8rem; color: #666; margin-bottom: 5px; }
+        .progress-container { width: 100%; background-color: #eee; height: 6px; border-radius: 3px; margin-bottom: 1.5rem; overflow: hidden; }
+        .progress-bar { height: 100%; background-color: var(--success-color); width: 0%; transition: width 0.3s; }
+        .back-link { display: inline-block; margin-top: 25px; color: #999; text-decoration: underline; cursor: pointer; font-size: 0.9rem; padding: 10px; }
 
         @media (max-width: 480px) {
             .container { padding: 1.5rem 1rem; }
             h1 { font-size: 1.3rem; }
-            .abbr-text { font-size: 1.8rem; }
+            .abbr-text { font-size: 1.6rem; }
         }
     </style>
 </head>
@@ -286,12 +188,12 @@
 
 <div class="container">
     <h1 id="app-title">略語正式名称クイズ</h1>
-    <p class="subtitle" id="app-subtitle">一般常識からギャル語まで！</p>
+    <p class="subtitle">その言葉、本当の名前知ってる？</p>
 
     <div id="menu-screen" class="screen active">
         
-        <div style="margin-bottom: 20px; border-bottom:1px solid #eee; padding-bottom:15px;">
-            <p class="toggle-desc">遊び方を選んでね</p>
+        <div style="margin-bottom: 15px; border-bottom:1px solid #eee; padding-bottom:10px;">
+            <p style="font-size:0.8rem; color:#666; margin-bottom:5px;">遊び方</p>
             <div class="play-mode-selector">
                 <button class="play-mode-btn selected" onclick="setPlayMode('choice', this)">🤔 4択</button>
                 <button class="play-mode-btn" onclick="setPlayMode('solo', this)">⌨️ 入力</button>
@@ -299,40 +201,63 @@
             </div>
         </div>
 
-        <p style="margin-bottom: 1rem; font-weight:bold;">コースを選んでスタート！</p>
-        
-        <button class="menu-btn btn-std" onclick="startStandardGame()">
-            <div class="menu-btn-content">
-                <span>📘 実用・一般コース</span>
-                <span class="menu-desc" style="font-size:0.8rem; opacity:0.9;">レベル別に出題（全50問〜）</span>
-            </div>
-            <span class="menu-arrow">▶</span>
-        </button>
+        <div style="height: 300px; overflow-y: auto; padding-right: 5px;">
+            <p style="font-size:0.9rem; font-weight:bold; margin-bottom:5px;">コース選択</p>
+            
+            <button class="menu-btn btn-std" onclick="startSpecialGame('std')">
+                <div class="menu-btn-content">
+                    <span>📘 一般常識コース</span>
+                    <span class="menu-desc">まずはここから！レベル別出題</span>
+                </div>
+                <span>▶</span>
+            </button>
 
-        <button class="menu-btn btn-gal" onclick="toggleGalMenu()">
-            <div class="menu-btn-content">
-                <span>💖 ギャル語・死語コース</span>
-                <span class="menu-desc" style="font-size:0.8rem; opacity:0.9;">昭和・平成・令和を選べるよ</span>
+            <button class="menu-btn btn-police" onclick="startSpecialGame('police')">
+                <div class="menu-btn-content">
+                    <span>👮 警察・刑事ドラマ</span>
+                    <span class="menu-desc">ガサ入れ、デカ、ホシ...</span>
+                </div>
+                <span>▶</span>
+            </button>
+
+            <button class="menu-btn btn-biz" onclick="startSpecialGame('biz')">
+                <div class="menu-btn-content">
+                    <span>💼 ビジネス・IT</span>
+                    <span class="menu-desc">PDCA、ASAP、リスケ...</span>
+                </div>
+                <span>▶</span>
+            </button>
+
+            <button class="menu-btn btn-otaku" onclick="startSpecialGame('otaku')">
+                <div class="menu-btn-content">
+                    <span>🤓 オタク・推し活</span>
+                    <span class="menu-desc">DD、同担、リアタイ...</span>
+                </div>
+                <span>▶</span>
+            </button>
+
+            <button class="menu-btn btn-gal" onclick="toggleGalMenu()">
+                <div class="menu-btn-content">
+                    <span>💖 ギャル語・死語</span>
+                    <span class="menu-desc">昭和・平成・令和を選べるよ</span>
+                </div>
+                <span>▼</span>
+            </button>
+            
+            <div id="gal-era-select" style="display:none; margin-top:5px; animation: fadeIn 0.3s;">
+                <button class="era-btn" onclick="startGalGame('showa')">📼 昭和ギャル（ナウい）</button>
+                <button class="era-btn" onclick="startGalGame('heisei')">🌺 平成ギャル（チョベリグ）</button>
+                <button class="era-btn" onclick="startGalGame('reiwa')">📱 令和ギャル（KP）</button>
             </div>
-            <span class="menu-arrow">▼</span>
-        </button>
-        
-        <div id="gal-era-select" style="display:none; margin-top:10px; animation: fadeIn 0.3s;">
-            <button class="era-btn" onclick="startGalGame('showa')">📼 昭和ギャル（ナウい）</button>
-            <button class="era-btn" onclick="startGalGame('heisei')">🌺 平成ギャル（チョベリグ）</button>
-            <button class="era-btn" onclick="startGalGame('reiwa')">📱 令和ギャル（KP）</button>
         </div>
-
-        <p style="font-size:0.8rem; color:#aaa; margin-top:20px;">※音が出ます 🔈</p>
+        <p style="font-size:0.75rem; color:#aaa; margin-top:10px;">※音が出ます 🔈</p>
     </div>
 
     <div id="game-screen" class="screen">
-        <div class="progress-container">
-            <div id="progress-bar" class="progress-bar"></div>
-        </div>
+        <div class="progress-container"><div id="progress-bar" class="progress-bar"></div></div>
         
         <div class="question-box">
-            <div id="info-badge" class="badge badge-level">LEVEL 1</div>
+            <div id="info-badge" class="badge" style="background:#ccc;">CATEGORY</div>
             <span class="label" id="question-label">これの正式名称（意味）は？</span>
             <div id="question-text" class="abbr-text"></div>
         </div>
@@ -357,9 +282,9 @@
 
         <div id="party-area" style="display:none;">
             <button id="party-reveal-btn" class="action-btn" style="background-color:#e67e22; box-shadow: 0 4px 0 #d35400;" onclick="revealPartyAnswer()">正解を見る</button>
-            <div id="party-answer-box" class="party-answer-box" style="display:none; margin:20px 0; border:2px dashed #ccc; padding:20px;">
-                <div class="party-answer-text" id="party-correct-text" style="font-size:1.6rem; font-weight:bold; color:#e74c3c;"></div>
-                <div class="party-sub-text" style="color:#777; margin-top:5px;">（他：<span id="party-alt-text"></span>）</div>
+            <div id="party-answer-box" style="display:none; margin:20px 0; border:2px dashed #ccc; padding:20px;">
+                <div id="party-correct-text" style="font-size:1.6rem; font-weight:bold; color:#e74c3c;"></div>
+                <div style="color:#777; margin-top:5px;">（他：<span id="party-alt-text"></span>）</div>
                 <br>
                 <button class="action-btn" onclick="nextQuestion()">次へ進む</button>
             </div>
@@ -370,18 +295,10 @@
 
     <div id="end-screen" class="screen">
         <h2 id="end-title">終了！</h2>
-        
-        <div id="scored-end-area" style="display:none;">
-            <p class="score-display" style="font-size:1.8rem; font-weight:bold; margin: 10px 0;">
-                正解数: <span id="final-score">0</span> / <span id="total-count">0</span>
-            </p>
+        <div id="scored-end-area">
+            <p style="font-size:1.5rem; font-weight:bold;">正解数: <span id="final-score">0</span> / <span id="total-count">0</span></p>
             <div id="feedback-comment" style="margin: 1.5rem 0; font-size:1.1rem;"></div>
         </div>
-        
-        <div id="party-end-area" style="display:none;">
-            <p>お疲れ様でした！<br>盛り上がりましたか？</p>
-        </div>
-
         <button class="action-btn" onclick="location.reload()">タイトルに戻る</button>
     </div>
 </div>
@@ -399,200 +316,158 @@
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         if (type === 'correct') {
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(880, now);
-            osc.frequency.setValueAtTime(1760, now + 0.1);
-            gain.gain.setValueAtTime(0.1, now);
-            gain.gain.linearRampToValueAtTime(0, now + 0.4);
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(now); osc.stop(now + 0.4);
-        } else if (type === 'wrong') {
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(150, now);
-            osc.frequency.linearRampToValueAtTime(100, now + 0.3);
-            gain.gain.setValueAtTime(0.1, now);
-            gain.gain.linearRampToValueAtTime(0, now + 0.3);
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(now); osc.stop(now + 0.3);
+            osc.type = 'sine'; osc.frequency.setValueAtTime(880, now); osc.frequency.setValueAtTime(1760, now+0.1);
+            gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now+0.4);
+        } else {
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, now); osc.frequency.linearRampToValueAtTime(100, now+0.3);
+            gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now+0.3);
         }
+        osc.connect(gain); gain.connect(audioCtx.destination); osc.start(now); osc.stop(now+0.4);
     }
 
     /* --- データセット --- */
-    // type: 'std' (通常) または 'gal' (ギャル語)
     const masterQuizData = [
-        // === Level 1: 基礎 (STD) ===
+        // === Level 1-3: Standard ===
         { abbr: "スマホ", formal: ["スマートフォン"], type: 'std', level: 1 },
         { abbr: "パソコン", formal: ["パーソナルコンピュータ"], type: 'std', level: 1 },
-        { abbr: "コンビニ", formal: ["コンビニエンスストア"], type: 'std', level: 1 },
-        { abbr: "テレビ", formal: ["テレビジョン"], type: 'std', level: 1 },
-        { abbr: "リモコン", formal: ["リモートコントローラー"], type: 'std', level: 1 },
-        { abbr: "エアコン", formal: ["エアーコンディショナー"], type: 'std', level: 1 },
-        { abbr: "アニメ", formal: ["アニメーション"], type: 'std', level: 1 },
-        { abbr: "デパート", formal: ["デパートメントストア"], type: 'std', level: 1 },
-        { abbr: "スーパー", formal: ["スーパーマーケット"], type: 'std', level: 1 },
-        { abbr: "バイト", formal: ["アルバイト"], type: 'std', level: 1 },
-        { abbr: "ビル", formal: ["ビルディング"], type: 'std', level: 1 },
-        { abbr: "マイク", formal: ["マイクロフォン"], type: 'std', level: 1 },
-        { abbr: "ピアノ", formal: ["ピアノフォルテ"], type: 'std', level: 1 },
-        { abbr: "メモ", formal: ["メモランダム"], type: 'std', level: 1 },
-        { abbr: "ミス", formal: ["ミステイク"], type: 'std', level: 1 },
-        { abbr: "プロ", formal: ["プロフェッショナル"], type: 'std', level: 1 },
-        { abbr: "アプリ", formal: ["アプリケーション"], type: 'std', level: 1 },
-        { abbr: "インフル", formal: ["インフルエンザ"], type: 'std', level: 1 },
-        { abbr: "トイレ", formal: ["トイレット"], type: 'std', level: 1 },
-
-        // === Level 2: 中級 (STD) ===
         { abbr: "食パン", formal: ["主食用パン"], type: 'std', level: 2 },
         { abbr: "軍手", formal: ["軍用手袋"], type: 'std', level: 2 },
-        { abbr: "切手", formal: ["切符手形"], type: 'std', level: 2 },
-        { abbr: "経済", formal: ["経世済民"], type: 'std', level: 2 },
-        { abbr: "教科書", formal: ["教科用図書"], type: 'std', level: 2 },
-        { abbr: "ボールペン", formal: ["ボールポイントペン"], type: 'std', level: 2 },
-        { abbr: "シャーペン", formal: ["シャープペンシル"], type: 'std', level: 2 },
-        { abbr: "演歌", formal: ["演説歌"], type: 'std', level: 2 },
-        { abbr: "割り勘", formal: ["割前勘定"], type: 'std', level: 2 },
-        { abbr: "断トツ", formal: ["断然トップ"], type: 'std', level: 2 },
-        { abbr: "特急", formal: ["特別急行"], type: 'std', level: 2 },
-        { abbr: "学割", formal: ["学生割引"], type: 'std', level: 2 },
-        { abbr: "国連", formal: ["国際連合"], type: 'std', level: 2 },
-        { abbr: "農協", formal: ["農業協同組合"], type: 'std', level: 2 },
-        { abbr: "交番", formal: ["交番所"], type: 'std', level: 2 },
-        { abbr: "就活", formal: ["就職活動"], type: 'std', level: 2 },
-        { abbr: "ブログ", formal: ["ウェブログ"], type: 'std', level: 2 },
-        { abbr: "リストラ", formal: ["リストラクチャリング"], type: 'std', level: 2 },
-
-        // === Level 3: 上級 (STD) ===
         { abbr: "カラオケ", formal: ["空オーケストラ"], type: 'std', level: 3 },
         { abbr: "ドタキャン", formal: ["土壇場キャンセル"], type: 'std', level: 3 },
-        { abbr: "レーダー", formal: ["電波探知機", "ラジオディテクションアンドレンジング"], type: 'std', level: 3 },
-        { abbr: "USB", formal: ["ユニバーサル・シリアル・バス"], type: 'std', level: 3 },
-        { abbr: "Wi-Fi", formal: ["ワイヤレス・フィデリティ"], type: 'std', level: 3 },
-        { abbr: "DVD", formal: ["デジタル・バーサタイル・ディスク"], type: 'std', level: 3 },
-        { abbr: "GPS", formal: ["グローバル・ポジショニング・システム"], type: 'std', level: 3 },
-        { abbr: "IQ", formal: ["インテリジェンス・クォーシェント", "知能指数"], type: 'std', level: 3 },
-        { abbr: "SOS", formal: ["遭難信号", "Save Our Souls"], type: 'std', level: 3 },
-        { abbr: "VIP", formal: ["ベリー・インポータント・パーソン"], type: 'std', level: 3 },
-        { abbr: "ATM", formal: ["現金自動預け払い機", "オートメイテッド・テラー・マシン"], type: 'std', level: 3 },
-        { abbr: "CEO", formal: ["最高経営責任者", "チーフ・エグゼクティブ・オフィサー"], type: 'std', level: 3 },
-        { abbr: "NG", formal: ["ノーグッド"], type: 'std', level: 3 },
-        { abbr: "CM", formal: ["コマーシャルメッセージ"], type: 'std', level: 3 },
-        { abbr: "ワイシャツ", formal: ["ホワイトシャツ"], type: 'std', level: 3 },
+        { abbr: "レーダー", formal: ["電波探知機"], type: 'std', level: 3 },
+        
+        // === 👮 警察・刑事 ===
+        { abbr: "ガサ入れ", formal: ["捜索差押", "家宅捜索"], type: 'police' },
+        { abbr: "デカ", formal: ["刑事"], type: 'police' },
+        { abbr: "ホシ", formal: ["犯人", "容疑者"], type: 'police' },
+        { abbr: "バンかけ", formal: ["職務質問"], type: 'police' },
+        { abbr: "マル暴", formal: ["組織犯罪対策部", "暴力団担当"], type: 'police' },
+        { abbr: "ガイシャ", formal: ["被害者"], type: 'police' },
+        { abbr: "ヤサ", formal: ["家", "隠れ家"], type: 'police' },
+        { abbr: "帳場", formal: ["捜査本部"], type: 'police' },
+        { abbr: "現着", formal: ["現場到着"], type: 'police' },
+        { abbr: "ゲソ", formal: ["足跡", "靴"], type: 'police' },
+        { abbr: "ロク", formal: ["遺体", "死体"], type: 'police' },
+        { abbr: "ラジオ", formal: ["無線", "無線機"], type: 'police' },
+        { abbr: "別件", formal: ["別件逮捕"], type: 'police' },
+        { abbr: "完落ち", formal: ["完全自供"], type: 'police' },
+        { abbr: "タタキ", formal: ["強盗"], type: 'police' },
 
-        // === ギャル語・死語：昭和 ===
-        { abbr: "ナウい", formal: ["現代的", "流行している", "今風"], type: 'gal', era: 'showa' },
-        { abbr: "マブダチ", formal: ["親友", "本当の友達"], type: 'gal', era: 'showa' },
-        { abbr: "ドロン", formal: ["消える", "先に帰る"], type: 'gal', era: 'showa' },
-        { abbr: "アッシー", formal: ["足代わりの男", "送迎係"], type: 'gal', era: 'showa' },
-        { abbr: "メッシー", formal: ["食事を奢らせる男"], type: 'gal', era: 'showa' },
-        { abbr: "バリバリ", formal: ["一生懸命", "現役"], type: 'gal', era: 'showa' },
-        { abbr: "ダサイ", formal: ["田舎くさい"], type: 'gal', era: 'showa' },
-        { abbr: "ハンパない", formal: ["半端ではない", "すごい"], type: 'gal', era: 'showa' },
-        { abbr: "イタ飯", formal: ["イタリア料理"], type: 'gal', era: 'showa' },
-        { abbr: "朝シャン", formal: ["朝のシャンプー"], type: 'gal', era: 'showa' },
+        // === 💼 ビジネス・IT ===
+        { abbr: "OJT", formal: ["On-the-Job Training", "実務教育"], type: 'biz' },
+        { abbr: "PDCA", formal: ["Plan-Do-Check-Act"], type: 'biz' },
+        { abbr: "ASAP", formal: ["As Soon As Possible", "なるべく早く"], type: 'biz' },
+        { abbr: "リスケ", formal: ["リスケジュール", "日程変更"], type: 'biz' },
+        { abbr: "MTG", formal: ["ミーティング", "会議"], type: 'biz' },
+        { abbr: "KGI", formal: ["重要目標達成指標", "Key Goal Indicator"], type: 'biz' },
+        { abbr: "KPI", formal: ["重要業績評価指標", "Key Performance Indicator"], type: 'biz' },
+        { abbr: "B2B", formal: ["Business to Business", "企業間取引"], type: 'biz' },
+        { abbr: "CEO", formal: ["Chief Executive Officer", "最高経営責任者"], type: 'biz' },
+        { abbr: "NR", formal: ["ノーリターン", "直帰"], type: 'biz' },
+        { abbr: "アジェンダ", formal: ["議題", "行動計画"], type: 'biz' },
+        { abbr: "エビデンス", formal: ["証拠", "根拠"], type: 'biz' },
+        { abbr: "コンセンサス", formal: ["合意"], type: 'biz' },
+        { abbr: "アサイン", formal: ["任命", "割り当て"], type: 'biz' },
 
-        // === ギャル語・死語：平成 ===
-        { abbr: "チョベリバ", formal: ["超ベリーバッド", "最悪"], type: 'gal', era: 'heisei' },
-        { abbr: "チョベリグ", formal: ["超ベリーグッド", "最高"], type: 'gal', era: 'heisei' },
-        { abbr: "MK5", formal: ["マジでキレる5秒前"], type: 'gal', era: 'heisei' },
-        { abbr: "KY", formal: ["空気読めない"], type: 'gal', era: 'heisei' },
-        { abbr: "MM", formal: ["マジむかつく"], type: 'gal', era: 'heisei' },
-        { abbr: "コギャル", formal: ["高校生ギャル"], type: 'gal', era: 'heisei' },
-        { abbr: "アゲぽよ", formal: ["気分が上がっている", "テンション高い"], type: 'gal', era: 'heisei' },
-        { abbr: "ガングロ", formal: ["顔が黒い", "日焼けギャル"], type: 'gal', era: 'heisei' },
-        { abbr: "パリピ", formal: ["パーティーピープル"], type: 'gal', era: 'heisei' },
-        { abbr: "Bダッシュ", formal: ["猛ダッシュ", "急ぐ"], type: 'gal', era: 'heisei' },
+        // === 🤓 オタク・推し活 ===
+        { abbr: "DD", formal: ["誰でも大好き", "Daredemo Daisuki"], type: 'otaku' },
+        { abbr: "同担", formal: ["同じ担当", "同じ推し"], type: 'otaku' },
+        { abbr: "BL", formal: ["ボーイズラブ"], type: 'otaku' },
+        { abbr: "リアタイ", formal: ["リアルタイム"], type: 'otaku' },
+        { abbr: "スパチャ", formal: ["スーパーチャット", "投げ銭"], type: 'otaku' },
+        { abbr: "ROM専", formal: ["Read Only Member", "見るだけ"], type: 'otaku' },
+        { abbr: "垢", formal: ["アカウント"], type: 'otaku' },
+        { abbr: "鯖", formal: ["サーバー"], type: 'otaku' },
+        { abbr: "FF外", formal: ["フォロー・フォロワー外"], type: 'otaku' },
+        { abbr: "888", formal: ["パチパチパチ", "拍手"], type: 'otaku' },
+        { abbr: "オプチャ", formal: ["オープンチャット"], type: 'otaku' },
+        { abbr: "リムる", formal: ["リムーブする", "フォロー解除"], type: 'otaku' },
+        { abbr: "バズる", formal: ["Buzzる", "話題になる"], type: 'otaku' },
 
-        // === ギャル語・死語：令和（Z世代） ===
+        // === ギャル・死語 ===
+        { abbr: "ナウい", formal: ["現代的"], type: 'gal', era: 'showa' },
+        { abbr: "チョベリバ", formal: ["超ベリーバッド"], type: 'gal', era: 'heisei' },
         { abbr: "KP", formal: ["乾杯"], type: 'gal', era: 'reiwa' },
         { abbr: "り", formal: ["了解"], type: 'gal', era: 'reiwa' },
-        { abbr: "フロリダ", formal: ["お風呂に入るから離脱する"], type: 'gal', era: 'reiwa' },
-        { abbr: "スパダリ", formal: ["スーパーダーリン", "ハイスペックな彼氏"], type: 'gal', era: 'reiwa' },
-        { abbr: "きまZ", formal: ["気まずい"], type: 'gal', era: 'reiwa' },
-        { abbr: "草", formal: ["笑い", "面白い"], type: 'gal', era: 'reiwa' },
-        { abbr: "垢抜け", formal: ["洗練される", "おしゃれになる"], type: 'gal', era: 'reiwa' },
-        { abbr: "オシャピク", formal: ["おしゃれなピクニック"], type: 'gal', era: 'reiwa' },
-        { abbr: "ディスる", formal: ["ディスペクトする", "侮辱する"], type: 'gal', era: 'reiwa' },
-        { abbr: "タピる", formal: ["タピオカを飲む"], type: 'gal', era: 'reiwa' }
+        { abbr: "草", formal: ["笑い"], type: 'gal', era: 'reiwa' }
     ];
 
     /* --- 状態変数 --- */
-    let currentPlayMode = 'choice'; // choice, solo, party
-    let currentCourse = 'std'; // std, gal
-    let currentEra = ''; // showa, heisei, reiwa
+    let currentPlayMode = 'choice'; 
+    let currentType = 'std'; 
+    let activeQuestionList = [];
     let currentQuestionIndex = 0;
     let score = 0;
-    let activeQuestionList = []; 
 
-    // DOM要素
+    // DOM取得
     const menuScreen = document.getElementById('menu-screen');
     const gameScreen = document.getElementById('game-screen');
     const endScreen = document.getElementById('end-screen');
-    const progressBar = document.getElementById('progress-bar');
     const questionText = document.getElementById('question-text');
     const infoBadge = document.getElementById('info-badge');
-    const commonResultArea = document.getElementById('common-result-area');
-    const resultMessage = document.getElementById('result-message');
-    const commonCorrectText = document.getElementById('common-correct-text');
 
-    // モード設定（4択 / 入力 / みんな）
     function setPlayMode(mode, btn) {
         currentPlayMode = mode;
         document.querySelectorAll('.play-mode-btn').forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
     }
 
-    // ギャルメニュー開閉
     function toggleGalMenu() {
-        const menu = document.getElementById('gal-era-select');
-        menu.style.display = (menu.style.display === 'none') ? 'block' : 'none';
+        const m = document.getElementById('gal-era-select');
+        m.style.display = (m.style.display==='none')?'block':'none';
     }
 
-    function shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
+    function shuffleArray(arr) {
+        for(let i=arr.length-1; i>0; i--){
+            const j=Math.floor(Math.random()*(i+1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
         }
-        return array;
+        return arr;
     }
 
-    // --- ゲーム開始（通常） ---
-    function startStandardGame() {
+    // --- ゲーム開始 (共通) ---
+    function startSpecialGame(type) {
         initAudio();
-        currentCourse = 'std';
-        document.body.classList.remove('gal-mode'); // ギャルモード解除
+        currentType = type;
+        document.body.className = ''; // クラスリセット
         
-        // レベル別に抽出してシャッフルして結合
-        const l1 = shuffleArray(masterQuizData.filter(q => q.type === 'std' && q.level === 1));
-        const l2 = shuffleArray(masterQuizData.filter(q => q.type === 'std' && q.level === 2));
-        const l3 = shuffleArray(masterQuizData.filter(q => q.type === 'std' && q.level === 3));
-        activeQuestionList = [...l1, ...l2, ...l3];
+        // 色分け
+        if(type === 'police') document.body.classList.add('police-mode');
+        else if(type === 'biz') document.body.classList.add('biz-mode');
+        else if(type === 'otaku') document.body.classList.add('otaku-mode');
+        else if(type === 'std') { /* default */ }
 
+        // データ抽出
+        if(type === 'std') {
+            const l1 = shuffleArray(masterQuizData.filter(q=>q.type==='std'&&q.level===1));
+            const l2 = shuffleArray(masterQuizData.filter(q=>q.type==='std'&&q.level===2));
+            const l3 = shuffleArray(masterQuizData.filter(q=>q.type==='std'&&q.level===3));
+            activeQuestionList = [...l1, ...l2, ...l3];
+        } else {
+            activeQuestionList = shuffleArray(masterQuizData.filter(q=>q.type===type));
+        }
         startGameCommon();
     }
 
-    // --- ゲーム開始（ギャル） ---
     function startGalGame(era) {
         initAudio();
-        currentCourse = 'gal';
-        currentEra = era;
-        document.body.classList.add('gal-mode'); // ギャルモード適用
-
-        // 時代別に抽出
-        activeQuestionList = shuffleArray(masterQuizData.filter(q => q.type === 'gal' && q.era === era));
+        currentType = 'gal';
+        document.body.className = 'gal-mode';
+        activeQuestionList = shuffleArray(masterQuizData.filter(q=>q.type==='gal'&&q.era===era));
         startGameCommon();
     }
 
     function startGameCommon() {
+        if(activeQuestionList.length === 0) { alert("問題がありません"); return; }
         currentQuestionIndex = 0;
         score = 0;
         menuScreen.classList.remove('active');
         gameScreen.classList.add('active');
         
-        // プレイモードに応じたUI表示制御
-        document.getElementById('choice-area').style.display = (currentPlayMode === 'choice') ? 'block' : 'none';
-        document.getElementById('solo-area').style.display = (currentPlayMode === 'solo') ? 'block' : 'none';
-        document.getElementById('party-area').style.display = (currentPlayMode === 'party') ? 'block' : 'none';
-
+        document.getElementById('choice-area').style.display = (currentPlayMode==='choice')?'block':'none';
+        document.getElementById('solo-area').style.display = (currentPlayMode==='solo')?'block':'none';
+        document.getElementById('party-area').style.display = (currentPlayMode==='party')?'block':'none';
+        
         showQuestion();
     }
 
@@ -600,189 +475,162 @@
     function showQuestion() {
         const q = activeQuestionList[currentQuestionIndex];
         questionText.textContent = q.abbr;
-
+        
         // バッジ表示
-        if (currentCourse === 'std') {
-            infoBadge.className = 'badge badge-level';
-            infoBadge.textContent = "LEVEL " + q.level;
-            infoBadge.style.backgroundColor = (q.level===1)?"#27ae60":(q.level===2)?"#e67e22":"#e74c3c";
-            document.getElementById('question-label').textContent = "これの正式名称は？";
-        } else {
-            infoBadge.className = 'badge badge-era';
-            const eraName = (q.era === 'showa') ? "昭和" : (q.era === 'heisei') ? "平成" : "令和";
-            infoBadge.textContent = eraName + "ギャル";
-            infoBadge.style.backgroundColor = "#c71585";
-            document.getElementById('question-label').textContent = "この言葉の意味は？";
-        }
+        infoBadge.textContent = getBadgeText(q);
+        infoBadge.style.backgroundColor = getBadgeColor(q);
 
-        const progress = (currentQuestionIndex / activeQuestionList.length) * 100;
-        progressBar.style.width = `${progress}%`;
-        commonResultArea.style.display = "none";
+        document.getElementById('progress-bar').style.width = `${(currentQuestionIndex/activeQuestionList.length)*100}%`;
+        document.getElementById('common-result-area').style.display = "none";
         document.getElementById('party-answer-box').style.display = "none";
         document.getElementById('party-reveal-btn').style.display = "inline-block";
 
-        if (currentPlayMode === 'choice') setupChoiceMode(q);
-        else if (currentPlayMode === 'solo') setupSoloMode();
-        
+        if(currentPlayMode==='choice') setupChoiceMode(q);
+        else if(currentPlayMode==='solo') setupSoloMode();
         window.scrollTo(0,0);
     }
 
-    // --- 4択モード ---
+    function getBadgeText(q) {
+        if(currentType === 'std') return "LEVEL " + q.level;
+        if(currentType === 'police') return "捜査資料";
+        if(currentType === 'biz') return "Business Term";
+        if(currentType === 'otaku') return "推し用語";
+        if(currentType === 'gal') return "ギャル語";
+        return "Q";
+    }
+    function getBadgeColor(q) {
+        if(currentType === 'std') return (q.level===1)?"#27ae60":(q.level===2)?"#e67e22":"#e74c3c";
+        if(currentType === 'police') return "#f1c40f"; // Gold
+        if(currentType === 'biz') return "#003366";
+        if(currentType === 'otaku') return "#8e44ad";
+        return "#ff69b4";
+    }
+
+    // --- 4択 ---
     function setupChoiceMode(q) {
-        const container = document.getElementById('choices-container');
-        container.innerHTML = '';
+        const con = document.getElementById('choices-container');
+        con.innerHTML = '';
         const correct = q.formal[0];
+        // ダミー選択肢：同じタイプの別問題から取得
+        let pool = masterQuizData.filter(d=>d.type===q.type && d.formal[0]!==correct);
+        if(pool.length < 3) pool = masterQuizData.filter(d=>d.formal[0]!==correct); // 足りなければ全体から
 
-        // ダミー選択肢生成
-        // 同じカテゴリ(std/gal)の中から正解以外の答えを持ってくる
-        let sameTypePool = masterQuizData.filter(d => d.type === q.type);
-        // ギャルモードなら同じ時代の言葉を優先するが、足りなければ全ギャル語から
-        if(currentCourse === 'gal') {
-            const eraPool = sameTypePool.filter(d => d.era === q.era);
-            if(eraPool.length > 5) sameTypePool = eraPool; 
-        }
-
-        const dummyList = shuffleArray(sameTypePool.filter(d => d.formal[0] !== correct)).slice(0, 3);
-        let choices = shuffleArray([correct, ...dummyList.map(d => d.formal[0])]);
+        const dummies = shuffleArray(pool).slice(0,3).map(d=>d.formal[0]);
+        let choices = shuffleArray([correct, ...dummies]);
 
         choices.forEach(c => {
             const btn = document.createElement('button');
             btn.className = 'choice-btn';
             btn.textContent = c;
-            btn.onclick = () => checkChoice(c, btn, correct);
-            container.appendChild(btn);
+            btn.onclick = ()=>checkChoice(c, btn, correct);
+            con.appendChild(btn);
         });
     }
 
-    function checkChoice(selected, btn, correct) {
-        const btns = document.querySelectorAll('.choice-btn');
-        btns.forEach(b => {
-            b.disabled = true;
-            if (b.textContent === correct) b.classList.add('correct-choice');
+    function checkChoice(sel, btn, cor) {
+        document.querySelectorAll('.choice-btn').forEach(b=>{
+            b.disabled=true;
+            if(b.textContent===cor) b.classList.add('correct-choice');
         });
-
-        const isCorrect = (selected === correct);
-        if(isCorrect) score++;
+        const isCor = (sel===cor);
+        if(isCor) score++;
         else btn.classList.add('wrong-choice');
-        
-        showResult(isCorrect, correct);
+        showResult(isCor, cor);
     }
 
-    // --- 入力モード ---
+    // --- 入力 ---
     function setupSoloMode() {
-        const input = document.getElementById('answer-input');
-        input.value = "";
-        input.disabled = false;
-        const btn = document.getElementById('solo-submit-btn');
-        btn.style.display = "inline-block";
-        input.focus();
+        const inp = document.getElementById('answer-input');
+        inp.value = ""; inp.disabled=false; inp.focus();
+        document.getElementById('solo-submit-btn').style.display="inline-block";
     }
-    
-    function normalize(str) {
-        return str.replace(/[\s　・]/g, "").toLowerCase();
-    }
-
     function checkSoloAnswer() {
-        const input = document.getElementById('answer-input');
-        const userAns = normalize(input.value);
-        const correctList = activeQuestionList[currentQuestionIndex].formal;
-        const isCorrect = correctList.some(ans => normalize(ans) === userAns);
-        
-        input.disabled = true;
-        document.getElementById('solo-submit-btn').style.display = "none";
-        if(isCorrect) score++;
-        showResult(isCorrect, correctList[0]);
+        const inp = document.getElementById('answer-input');
+        const user = inp.value.replace(/[\s　・]/g,"").toLowerCase();
+        const cors = activeQuestionList[currentQuestionIndex].formal;
+        const isCor = cors.some(c=>c.replace(/[\s　・]/g,"").toLowerCase() === user);
+        inp.disabled=true;
+        document.getElementById('solo-submit-btn').style.display="none";
+        if(isCor) score++;
+        showResult(isCor, cors[0]);
     }
 
-    // --- みんなモード ---
+    // --- みんな ---
     function revealPartyAnswer() {
         const q = activeQuestionList[currentQuestionIndex];
         document.getElementById('party-correct-text').textContent = q.formal[0];
-        document.getElementById('party-alt-text').textContent = (q.formal.length>1) ? q.formal.slice(1).join(', ') : "-";
-        
-        document.getElementById('party-reveal-btn').style.display = "none";
-        document.getElementById('party-answer-box').style.display = "block";
+        document.getElementById('party-alt-text').textContent = (q.formal.length>1)?q.formal.slice(1).join(', '):"-";
+        document.getElementById('party-reveal-btn').style.display="none";
+        document.getElementById('party-answer-box').style.display="block";
         playSound('correct');
     }
 
-    // --- 結果表示・分岐 ---
-    function showResult(isCorrect, ansText) {
-        commonResultArea.style.display = "block";
-        commonCorrectText.textContent = ansText;
-        
-        // ギャルモードと通常モードでコメントを変える
-        if (isCorrect) {
+    // --- 結果 ---
+    function showResult(isCor, ans) {
+        const area = document.getElementById('common-result-area');
+        const msg = document.getElementById('result-message');
+        const corTxt = document.getElementById('common-correct-text');
+        area.style.display="block";
+        corTxt.textContent = ans;
+
+        if(isCor) {
             playSound('correct');
-            resultMessage.className = "correct";
-            if(currentCourse === 'gal') {
-                const goods = ["バイブス上がる〜！", "ウケるw 正解！", "天才すぎん？", "神レベル！"];
-                resultMessage.textContent = goods[Math.floor(Math.random()*goods.length)];
-            } else {
-                resultMessage.textContent = "正解！⭕️";
-            }
+            msg.className = "correct";
+            msg.textContent = getGoodMsg();
         } else {
             playSound('wrong');
-            resultMessage.className = "incorrect";
-            if(currentCourse === 'gal') {
-                const bads = ["まじムリ...", "サゲ〜...", "ぴえん🥺", "ドンマイ！"];
-                resultMessage.textContent = bads[Math.floor(Math.random()*bads.length)];
-            } else {
-                resultMessage.textContent = "残念...❌";
-            }
+            msg.className = "incorrect";
+            msg.textContent = getBadMsg();
         }
     }
 
+    function getGoodMsg() {
+        if(currentType === 'police') return randomMsg(["確保！", "ホシを挙げた！", "お手柄だ！"]);
+        if(currentType === 'biz') return randomMsg(["承認します", "アグリーです", "エクセレント"]);
+        if(currentType === 'otaku') return randomMsg(["尊い...", "解釈一致！", "神！"]);
+        if(currentType === 'gal') return randomMsg(["バイブス上がる！", "ウケるw 正解", "神レベル！"]);
+        return "正解！⭕️";
+    }
+    function getBadMsg() {
+        if(currentType === 'police') return randomMsg(["誤認逮捕...", "取り逃がした...", "捜査やり直し"]);
+        if(currentType === 'biz') return randomMsg(["却下します", "再考してください", "ナンセンス"]);
+        if(currentType === 'otaku') return randomMsg(["にわか乙", "解釈違い", "出直してきて"]);
+        if(currentType === 'gal') return randomMsg(["まじムリ...", "サゲ〜...", "ぴえん🥺"]);
+        return "残念...❌";
+    }
+    function randomMsg(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
+
     function nextQuestion() {
         currentQuestionIndex++;
-        if (currentQuestionIndex < activeQuestionList.length) {
-            showQuestion();
-        } else {
-            showEndScreen();
-        }
+        if(currentQuestionIndex < activeQuestionList.length) showQuestion();
+        else showEndScreen();
     }
 
     function showEndScreen() {
         gameScreen.classList.remove('active');
         endScreen.classList.add('active');
-
-        if (currentPlayMode !== 'party') {
-            document.getElementById('scored-end-area').style.display = 'block';
-            document.getElementById('party-end-area').style.display = 'none';
+        if(currentPlayMode !== 'party') {
+            document.getElementById('scored-end-area').style.display='block';
             document.getElementById('final-score').textContent = score;
             document.getElementById('total-count').textContent = activeQuestionList.length;
-            
             const fb = document.getElementById('feedback-comment');
-            const rate = score / activeQuestionList.length;
-            
-            if (currentCourse === 'gal') {
-                if(score === activeQuestionList.length) fb.textContent = "最強ギャル認定！💖👑";
-                else if(rate >= 0.8) fb.textContent = "マジで詳しくて草ww";
-                else if(rate >= 0.5) fb.textContent = "いい感じじゃん！✨";
-                else fb.textContent = "もっと勉強しな！👊";
-            } else {
-                if(score === activeQuestionList.length) fb.textContent = "完璧です！雑学王！👑";
-                else if(rate >= 0.8) fb.textContent = "すごい！かなり詳しいですね👏";
-                else if(rate >= 0.5) fb.textContent = "まあまあですね！👍";
-                else fb.textContent = "伸び代がありますね...！🌱";
-            }
+            const rate = score/activeQuestionList.length;
+            if(rate===1) fb.textContent = "パーフェクト！伝説級！👑";
+            else if(rate>=0.8) fb.textContent = "素晴らしい！マスター級です👏";
+            else if(rate>=0.5) fb.textContent = "いい感じです！👍";
+            else fb.textContent = "まだまだ伸び代があります！🌱";
         } else {
-            document.getElementById('scored-end-area').style.display = 'none';
-            document.getElementById('party-end-area').style.display = 'block';
+            document.getElementById('scored-end-area').style.display='none';
         }
     }
 
-    // Enterキー対応
-    document.addEventListener("keypress", function(e) {
-        if(e.key === "Enter" && currentPlayMode === 'solo') {
-            const submitBtn = document.getElementById('solo-submit-btn');
-            if(submitBtn.style.display !== 'none' && gameScreen.classList.contains('active')) {
-                checkSoloAnswer();
-            } else if(commonResultArea.style.display !== 'none') {
-                nextQuestion();
-            }
+    document.addEventListener("keypress", (e)=>{
+        if(e.key==="Enter" && currentPlayMode==='solo') {
+            const btn = document.getElementById('solo-submit-btn');
+            if(btn.style.display!=='none') checkSoloAnswer();
+            else if(document.getElementById('common-result-area').style.display!=='none') nextQuestion();
         }
     });
-
 </script>
 </body>
 </html>
