@@ -410,7 +410,7 @@
         return arr;
     }
 
-    /* --- AI生成ロジック (詳細エラー表示版) --- */
+    /* --- AI生成ロジック (モデル名修正版) --- */
     async function startAIGame() {
         const apiKey = apiKeyInput.value.trim();
         if(!apiKey) {
@@ -424,7 +424,6 @@
         document.body.className = 'ai-mode';
         
         try {
-            // プロンプト作成
             const prompt = `
             あなたはクイズ作成AIです。
             「略語の正式名称クイズ」または「業界用語の意味クイズ」を新しく5問作成し、JSON配列形式で出力してください。
@@ -434,13 +433,12 @@
             2. 回答は必ず有効なJSON配列のみを出力すること（Markdownのbacktickなどは不要）。
             3. フォーマット:
             [
-              { "abbr": "略語または用語", "formal": ["正式名称1", "正式名称2(あれば)"], "level": 1〜3の難易度 }
+              { "abbr": "略語または用語", "formal": ["正式名称1", "正式名称2"], "level": 1〜3の難易度 }
             ]
-            4. 既存のよくある問題だけでなく、ユニークなものも混ぜてください。
             `;
 
-            // APIコール
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+            // ★修正ポイント：モデル名を 'gemini-1.5-flash-latest' に変更しました
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -448,9 +446,7 @@
                 })
             });
 
-            // ★エラー判定を強化
             if (!response.ok) {
-                // Googleからの詳細なエラーメッセージを取得
                 const errorData = await response.json().catch(() => null);
                 const errorMsg = errorData?.error?.message || `HTTP Status: ${response.status}`;
                 throw new Error(errorMsg);
@@ -458,20 +454,15 @@
 
             const data = await response.json();
             
-            // 安全対策：データ構造のチェック
             if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
                 throw new Error("AIからの応答が空でした。");
             }
 
             let rawText = data.candidates[0].content.parts[0].text;
-            
-            // JSONの整形
             rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
             const aiQuestions = JSON.parse(rawText);
 
-            // データの整形
             aiQuestions.forEach(q => q.type = 'ai');
-            
             activeQuestionList = aiQuestions;
             loadingOverlay.style.display = "none";
             startGameCommon();
@@ -479,8 +470,7 @@
         } catch (e) {
             loadingOverlay.style.display = "none";
             console.error(e);
-            // 詳細なエラーをアラートに表示
-            alert("エラーが発生しました。\n以下のメッセージを確認してください：\n\n" + e.message);
+            alert("エラーが発生しました。\n" + e.message);
         }
     }
 
