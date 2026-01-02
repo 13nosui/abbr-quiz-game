@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>略語正式名称クイズ（レスポンシブ版）</title>
+    <title>略語正式名称クイズ（レベルアップ版）</title>
     <style>
         /* ベース設定 */
         :root {
@@ -131,8 +131,22 @@
             justify-content: center;
             align-items: center;
             word-wrap: break-word;
+            position: relative;
         }
         
+        .level-badge {
+            position: absolute;
+            top: -10px;
+            right: 10px;
+            background: #f1c40f;
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
         .abbr-text {
             font-size: 2.2rem;
             font-weight: bold;
@@ -327,7 +341,7 @@
 
 <div class="container">
     <h1>略語正式名称クイズ</h1>
-    <p class="subtitle">普段使っている言葉の「本当の名前」知ってる？</p>
+    <p class="subtitle">徐々に難しくなるよ！<br>本当の名前知ってる？</p>
 
     <div id="menu-screen" class="screen active">
         <p style="margin-bottom: 1rem; font-weight:bold;">遊び方を選んでください</p>
@@ -364,6 +378,7 @@
         </div>
         
         <div class="question-box">
+            <div id="level-badge" class="level-badge">LEVEL 1</div>
             <span class="label">これの正式名称は？</span>
             <div id="question-text" class="abbr-text"></div>
         </div>
@@ -457,28 +472,40 @@
         }
     }
 
-    /* --- ゲームデータ --- */
-    const quizData = [
-        { abbr: "スマホ", formal: ["スマートフォン", "スマートホン"] },
-        { abbr: "コンビニ", formal: ["コンビニエンスストア", "コンビニエンス・ストア"] },
-        { abbr: "パソコン", formal: ["パーソナルコンピュータ", "パーソナルコンピューター"] },
-        { abbr: "食パン", formal: ["主食用パン"] },
-        { abbr: "ボールペン", formal: ["ボールポイントペン"] },
-        { abbr: "軍手", formal: ["軍用手袋"] },
-        { abbr: "切手", formal: ["切符手形"] },
-        { abbr: "教科書", formal: ["教科用図書"] },
-        { abbr: "経済", formal: ["経世済民"] },
-        { abbr: "ドタキャン", formal: ["土壇場キャンセル"] },
-        { abbr: "レーダー", formal: ["電波探知機", "ラジオディテクションアンドレンジング"] },
-        { abbr: "カラオケ", formal: ["空オーケストラ"] },
-        { abbr: "USB", formal: ["ユニバーサル・シリアル・バス"] },
-        { abbr: "Wi-Fi", formal: ["ワイヤレス・フィデリティ", "Wireless Fidelity"] }
+    /* --- ゲームデータ（レベル付き） --- */
+    const masterQuizData = [
+        // Level 1: 基礎・よく聞く
+        { abbr: "スマホ", formal: ["スマートフォン", "スマートホン"], level: 1 },
+        { abbr: "コンビニ", formal: ["コンビニエンスストア", "コンビニエンス・ストア"], level: 1 },
+        { abbr: "パソコン", formal: ["パーソナルコンピュータ", "パーソナルコンピューター"], level: 1 },
+        { abbr: "カラオケ", formal: ["空オーケストラ"], level: 1 },
+        { abbr: "テレビ", formal: ["テレビジョン"], level: 1 },
+        { abbr: "リモコン", formal: ["リモートコントローラー"], level: 1 },
+
+        // Level 2: ちょっと意外・漢字系
+        { abbr: "食パン", formal: ["主食用パン"], level: 2 },
+        { abbr: "ボールペン", formal: ["ボールポイントペン"], level: 2 },
+        { abbr: "切手", formal: ["切符手形"], level: 2 },
+        { abbr: "教科書", formal: ["教科用図書"], level: 2 },
+        { abbr: "経済", formal: ["経世済民"], level: 2 },
+        { abbr: "軍手", formal: ["軍用手袋"], level: 2 },
+        { abbr: "スーパー", formal: ["スーパーマーケット"], level: 2 },
+
+        // Level 3: 難しい・カタカナ長語
+        { abbr: "ドタキャン", formal: ["土壇場キャンセル"], level: 3 },
+        { abbr: "レーダー", formal: ["電波探知機", "ラジオディテクションアンドレンジング"], level: 3 },
+        { abbr: "USB", formal: ["ユニバーサル・シリアル・バス"], level: 3 },
+        { abbr: "Wi-Fi", formal: ["ワイヤレス・フィデリティ", "Wireless Fidelity"], level: 3 },
+        { abbr: "DVD", formal: ["デジタル・バーサタイル・ディスク"], level: 3 },
+        { abbr: "NG", formal: ["ノーグッド"], level: 3 },
+        { abbr: "VIP", formal: ["ベリー・インポータント・パーソン"], level: 3 }
     ];
 
     /* --- ゲーム状態管理 --- */
     let currentMode = ''; 
     let currentQuestionIndex = 0;
     let score = 0;
+    let activeQuestionList = []; // 今回のゲームで使う、シャッフル＆ソート済みのリスト
 
     // DOM要素
     const menuScreen = document.getElementById('menu-screen');
@@ -486,6 +513,7 @@
     const endScreen = document.getElementById('end-screen');
     const progressBar = document.getElementById('progress-bar');
     const questionText = document.getElementById('question-text');
+    const levelBadge = document.getElementById('level-badge');
 
     const choiceArea = document.getElementById('choice-area');
     const soloArea = document.getElementById('solo-area');
@@ -504,12 +532,39 @@
     const partyCorrectText = document.getElementById('party-correct-text');
     const partyAltText = document.getElementById('party-alt-text');
 
+    // 配列をシャッフルする関数
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    // 問題リストを生成（レベルごとにシャッフルして結合）
+    function generateActiveQuestionList() {
+        const level1 = masterQuizData.filter(q => q.level === 1);
+        const level2 = masterQuizData.filter(q => q.level === 2);
+        const level3 = masterQuizData.filter(q => q.level === 3);
+
+        // 各レベル内でシャッフル
+        shuffleArray(level1);
+        shuffleArray(level2);
+        shuffleArray(level3);
+
+        // 易しい順に結合
+        return [...level1, ...level2, ...level3];
+    }
+
     // モード選択
     function selectMode(mode) {
         initAudio();
         currentMode = mode;
         currentQuestionIndex = 0;
         score = 0;
+        
+        // 毎回新しい問題順序を生成
+        activeQuestionList = generateActiveQuestionList();
 
         menuScreen.classList.remove('active');
         gameScreen.classList.add('active');
@@ -523,10 +578,16 @@
 
     // 問題表示
     function showQuestion() {
-        const q = quizData[currentQuestionIndex];
+        const q = activeQuestionList[currentQuestionIndex];
         questionText.textContent = q.abbr;
         
-        const progress = ((currentQuestionIndex) / quizData.length) * 100;
+        // レベルバッジの更新
+        levelBadge.textContent = "LEVEL " + q.level;
+        if(q.level === 1) levelBadge.style.backgroundColor = "#27ae60"; // Green
+        else if(q.level === 2) levelBadge.style.backgroundColor = "#e67e22"; // Orange
+        else levelBadge.style.backgroundColor = "#e74c3c"; // Red
+        
+        const progress = ((currentQuestionIndex) / activeQuestionList.length) * 100;
         progressBar.style.width = `${progress}%`;
 
         commonResultArea.style.display = "none";
@@ -548,12 +609,13 @@
         choicesContainer.innerHTML = ''; 
         const correctAnswer = currentQ.formal[0];
         
-        const otherQuestions = quizData.filter((_, index) => index !== currentQuestionIndex);
-        const shuffledOthers = [...otherQuestions].sort(() => 0.5 - Math.random());
+        // ダミー選択肢はマスタデータ全体から、正解以外をランダムに選ぶ
+        const allOtherQuestions = masterQuizData.filter(q => q.formal[0] !== correctAnswer);
+        const shuffledOthers = shuffleArray([...allOtherQuestions]);
         const dummyAnswers = shuffledOthers.slice(0, 3).map(q => q.formal[0]);
         
         let choices = [correctAnswer, ...dummyAnswers];
-        choices = choices.sort(() => 0.5 - Math.random());
+        choices = shuffleArray(choices);
 
         choices.forEach(choiceText => {
             const btn = document.createElement('button');
@@ -596,7 +658,7 @@
 
     function checkSoloAnswer() {
         const userAnswer = normalizeString(answerInput.value);
-        const correctAnswers = quizData[currentQuestionIndex].formal;
+        const correctAnswers = activeQuestionList[currentQuestionIndex].formal;
         let isCorrect = false;
         for (let ans of correctAnswers) {
             if (userAnswer === normalizeString(ans)) {
@@ -631,7 +693,7 @@
     }
 
     function revealPartyAnswer() {
-        const q = quizData[currentQuestionIndex];
+        const q = activeQuestionList[currentQuestionIndex];
         partyCorrectText.textContent = q.formal[0];
         if (q.formal.length > 1) {
             partyAltText.textContent = q.formal.slice(1).join(', ');
@@ -647,7 +709,7 @@
     // --- 進行・終了 ---
     function nextQuestion() {
         currentQuestionIndex++;
-        if (currentQuestionIndex < quizData.length) {
+        if (currentQuestionIndex < activeQuestionList.length) {
             showQuestion();
         } else {
             showEndScreen();
@@ -662,10 +724,10 @@
             document.getElementById('scored-end-area').style.display = 'block';
             document.getElementById('party-end-area').style.display = 'none';
             document.getElementById('final-score').textContent = score;
-            document.getElementById('total-count').textContent = quizData.length;
+            document.getElementById('total-count').textContent = activeQuestionList.length;
             
             const feedback = document.getElementById('feedback-comment');
-            const maxScore = quizData.length;
+            const maxScore = activeQuestionList.length;
             if (score === maxScore) feedback.textContent = "完璧です！雑学王！👑";
             else if (score >= maxScore * 0.7) feedback.textContent = "すごい！かなり詳しいですね👏";
             else if (score >= maxScore * 0.4) feedback.textContent = "まあまあですね！👍";
