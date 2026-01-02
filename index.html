@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>略語正式名称クイズ（レスポンシブ版）</title>
+    <style>
+        /* ベース設定 */
+        :root {
+            --primary-color: #3498db;
+            --primary-dark: #2980b9;
+            --success-color: #27ae60;
+            --error-color: #e74c3c;
+            --choice-color: #9b59b6;
+            --choice-dark: #8e44ad;
+            --party-color: #e67e22;
+            --party-dark: #d35400;
+            --bg-color: #f0f4f8;
+            --text-color: #333;
+        }
+
+        * {
+            box-sizing: border-box; /* レイアウト崩れ防止 */
+        }
+
+        body {
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px; /* スマホでの端の余白確保 */
+            user-select: none;
+            -webkit-tap-highlight-color: transparent; /* スマホタップ時のハイライト削除 */
+        }
+
+        .container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px; /* PCでは広がりすぎないように */
+            text-align: center;
+            position: relative;
+            transition: padding 0.3s;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            font-size: 1.5rem;
+            line-height: 1.4;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* 画面切り替えアニメーション */
+        .screen { display: none; }
+        .screen.active { 
+            display: block; 
+            animation: fadeIn 0.3s ease-out; 
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* メニューボタン */
+        .menu-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            margin: 10px 0;
+            padding: 1.2rem;
+            font-size: 1.1rem;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.2s;
+            font-weight: bold;
+            color: white;
+            text-align: left;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+        }
+        
+        .menu-btn-content {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .menu-arrow {
+            font-size: 1.2rem;
+            opacity: 0.7;
+        }
+
+        .btn-choice { background-color: var(--choice-color); box-shadow: 0 4px 0 var(--choice-dark); }
+        .btn-solo { background-color: var(--primary-color); box-shadow: 0 4px 0 var(--primary-dark); }
+        .btn-party { background-color: var(--party-color); box-shadow: 0 4px 0 var(--party-dark); }
+        
+        .menu-btn:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+        
+        .menu-desc { 
+            font-size: 0.85rem; 
+            font-weight: normal; 
+            margin-top: 4px; 
+            opacity: 0.95; 
+        }
+
+        /* 問題表示部 */
+        .question-box {
+            background-color: #eef2f7;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            word-wrap: break-word;
+        }
+        
+        .abbr-text {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        /* アクションボタン (共通) */
+        .action-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 15px;
+            width: 100%; /* スマホで押しやすいよう幅いっぱいに */
+            max-width: 300px;
+            box-shadow: 0 4px 0 var(--primary-dark);
+            transition: transform 0.1s;
+        }
+        .action-btn:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        /* --- 4択モード --- */
+        .choices-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .choice-btn {
+            background-color: white;
+            border: 2px solid #bdc3c7;
+            color: #333;
+            padding: 15px;
+            font-size: 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: bold;
+            text-align: center;
+            /* 長いテキストの折り返し処理 */
+            overflow-wrap: break-word;
+            word-wrap: break-word; 
+            line-height: 1.4;
+        }
+        
+        /* ホバーはPCのみ有効（スマホのタップ残留防止） */
+        @media (hover: hover) {
+            .choice-btn:hover:not([disabled]) {
+                background-color: #ecf0f1;
+                border-color: #95a5a6;
+            }
+        }
+
+        .choice-btn.correct-choice {
+            background-color: var(--success-color) !important;
+            color: white !important;
+            border-color: var(--success-color) !important;
+        }
+        .choice-btn.wrong-choice {
+            background-color: var(--error-color) !important;
+            color: white !important;
+            border-color: var(--error-color) !important;
+        }
+
+        /* --- ひとりモード --- */
+        input[type="text"] {
+            width: 100%;
+            padding: 14px;
+            font-size: 1.2rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            outline: none;
+            text-align: center;
+            -webkit-appearance: none; /* iOSのスタイルリセット */
+        }
+        input[type="text"]:focus { border-color: var(--primary-color); }
+
+        /* --- みんなモード --- */
+        .party-answer-box {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px dashed #bdc3c7;
+            border-radius: 10px;
+            display: none;
+        }
+        .party-answer-text {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: var(--error-color);
+            word-wrap: break-word;
+        }
+        .party-sub-text {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-top: 8px;
+        }
+
+        /* 結果表示 */
+        .result-feedback-box {
+            background: #fafafa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 10px;
+            text-align: center;
+            border: 1px solid #eee;
+        }
+        #result-message {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+        .correct { color: var(--success-color); }
+        .incorrect { color: var(--error-color); }
+
+        /* 進捗バー */
+        .progress-container {
+            width: 100%;
+            background-color: #eee;
+            height: 8px;
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: var(--success-color);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        /* 戻るリンク */
+        .back-link {
+            display: inline-block;
+            margin-top: 25px;
+            color: #999;
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 10px; /* タップ領域確保 */
+        }
+
+        /* --- レスポンシブ調整（スマホ向け） --- */
+        @media (max-width: 480px) {
+            .container {
+                padding: 1.5rem 1rem; /* 横幅のパディングを減らす */
+                width: 100%;
+            }
+
+            h1 {
+                font-size: 1.3rem;
+            }
+
+            .abbr-text {
+                font-size: 1.8rem; /* 少し小さくして折り返し防止 */
+            }
+
+            .menu-btn {
+                padding: 1rem;
+            }
+            .menu-desc {
+                font-size: 0.8rem;
+            }
+
+            .choice-btn {
+                padding: 12px;
+                font-size: 0.95rem;
+            }
+
+            #result-message {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>略語正式名称クイズ</h1>
+    <p class="subtitle">普段使っている言葉の「本当の名前」知ってる？</p>
+
+    <div id="menu-screen" class="screen active">
+        <p style="margin-bottom: 1rem; font-weight:bold;">遊び方を選んでください</p>
+        
+        <button class="menu-btn btn-choice" onclick="selectMode('choice')">
+            <div class="menu-btn-content">
+                <span>🤔 4択モード</span>
+                <span class="menu-desc">選択肢から選ぶ（スコアあり）</span>
+            </div>
+            <span class="menu-arrow">▶</span>
+        </button>
+
+        <button class="menu-btn btn-solo" onclick="selectMode('solo')">
+            <div class="menu-btn-content">
+                <span>⌨️ ひとりモード</span>
+                <span class="menu-desc">入力して実力試し（スコアあり）</span>
+            </div>
+            <span class="menu-arrow">▶</span>
+        </button>
+        
+        <button class="menu-btn btn-party" onclick="selectMode('party')">
+            <div class="menu-btn-content">
+                <span>🗣️ みんなモード</span>
+                <span class="menu-desc">問題と答えを表示（スコアなし）</span>
+            </div>
+            <span class="menu-arrow">▶</span>
+        </button>
+        <p style="font-size:0.8rem; color:#aaa; margin-top:20px;">※音が出ます 🔈</p>
+    </div>
+
+    <div id="game-screen" class="screen">
+        <div class="progress-container">
+            <div id="progress-bar" class="progress-bar"></div>
+        </div>
+        
+        <div class="question-box">
+            <span class="label">これの正式名称は？</span>
+            <div id="question-text" class="abbr-text"></div>
+        </div>
+
+        <div id="choice-area" style="display:none;">
+            <div id="choices-container" class="choices-container">
+                </div>
+        </div>
+
+        <div id="solo-area" style="display:none;">
+            <input type="text" id="answer-input" placeholder="ここに入力..." autocomplete="off">
+            <br>
+            <button id="solo-submit-btn" class="action-btn" onclick="checkSoloAnswer()">回答する</button>
+        </div>
+
+        <div id="common-result-area" class="result-feedback-box" style="display:none;">
+            <div id="result-message"></div>
+            <div style="margin-top:10px;">
+                正解は：<br><strong id="common-correct-text" style="font-size:1.3rem; color:#333;"></strong>
+            </div>
+            <button class="action-btn" onclick="nextQuestion()">次の問題へ</button>
+        </div>
+
+        <div id="party-area" style="display:none;">
+            <button id="party-reveal-btn" class="action-btn" style="background-color:#e67e22; box-shadow: 0 4px 0 #d35400;" onclick="revealPartyAnswer()">正解を見る</button>
+            
+            <div id="party-answer-box" class="party-answer-box">
+                <div class="party-answer-text" id="party-correct-text"></div>
+                <div class="party-sub-text">（他：<span id="party-alt-text"></span>）</div>
+                <br>
+                <button class="action-btn" onclick="nextQuestion()">次の問題へ</button>
+            </div>
+        </div>
+
+        <div class="back-link" onclick="location.reload()">タイトルに戻る</div>
+    </div>
+
+    <div id="end-screen" class="screen">
+        <h2 id="end-title">終了！</h2>
+        
+        <div id="scored-end-area" style="display:none;">
+            <p class="score-display" style="font-size:1.8rem; font-weight:bold; margin: 10px 0;">
+                正解数: <span id="final-score">0</span> / <span id="total-count">0</span>
+            </p>
+            <div id="feedback-comment" style="margin: 1.5rem 0; font-size:1.1rem;"></div>
+        </div>
+
+        <div id="party-end-area" style="display:none;">
+            <p style="font-size:1.2rem;">全ての問題が終わりました！</p>
+            <p style="margin-bottom: 1.5rem; color:#666;">楽しんでいただけましたか？</p>
+        </div>
+
+        <button class="action-btn" onclick="location.reload()">タイトルに戻る</button>
+    </div>
+</div>
+
+<script>
+    /* --- 音声処理 (Web Audio API) --- */
+    let audioCtx;
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function playSound(type) {
+        if (!audioCtx) return;
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        if (type === 'correct') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, now);
+            osc.frequency.setValueAtTime(1760, now + 0.1);
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.linearRampToValueAtTime(0, now + 0.4);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now); osc.stop(now + 0.4);
+        } else if (type === 'wrong') {
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, now);
+            osc.frequency.linearRampToValueAtTime(100, now + 0.3);
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.linearRampToValueAtTime(0, now + 0.3);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now); osc.stop(now + 0.3);
+        }
+    }
+
+    /* --- ゲームデータ --- */
+    const quizData = [
+        { abbr: "スマホ", formal: ["スマートフォン", "スマートホン"] },
+        { abbr: "コンビニ", formal: ["コンビニエンスストア", "コンビニエンス・ストア"] },
+        { abbr: "パソコン", formal: ["パーソナルコンピュータ", "パーソナルコンピューター"] },
+        { abbr: "食パン", formal: ["主食用パン"] },
+        { abbr: "ボールペン", formal: ["ボールポイントペン"] },
+        { abbr: "軍手", formal: ["軍用手袋"] },
+        { abbr: "切手", formal: ["切符手形"] },
+        { abbr: "教科書", formal: ["教科用図書"] },
+        { abbr: "経済", formal: ["経世済民"] },
+        { abbr: "ドタキャン", formal: ["土壇場キャンセル"] },
+        { abbr: "レーダー", formal: ["電波探知機", "ラジオディテクションアンドレンジング"] },
+        { abbr: "カラオケ", formal: ["空オーケストラ"] },
+        { abbr: "USB", formal: ["ユニバーサル・シリアル・バス"] },
+        { abbr: "Wi-Fi", formal: ["ワイヤレス・フィデリティ", "Wireless Fidelity"] }
+    ];
+
+    /* --- ゲーム状態管理 --- */
+    let currentMode = ''; 
+    let currentQuestionIndex = 0;
+    let score = 0;
+
+    // DOM要素
+    const menuScreen = document.getElementById('menu-screen');
+    const gameScreen = document.getElementById('game-screen');
+    const endScreen = document.getElementById('end-screen');
+    const progressBar = document.getElementById('progress-bar');
+    const questionText = document.getElementById('question-text');
+
+    const choiceArea = document.getElementById('choice-area');
+    const soloArea = document.getElementById('solo-area');
+    const partyArea = document.getElementById('party-area');
+
+    const choicesContainer = document.getElementById('choices-container');
+    const answerInput = document.getElementById('answer-input');
+    const soloSubmitBtn = document.getElementById('solo-submit-btn');
+
+    const commonResultArea = document.getElementById('common-result-area');
+    const resultMessage = document.getElementById('result-message');
+    const commonCorrectText = document.getElementById('common-correct-text');
+
+    const partyRevealBtn = document.getElementById('party-reveal-btn');
+    const partyAnswerBox = document.getElementById('party-answer-box');
+    const partyCorrectText = document.getElementById('party-correct-text');
+    const partyAltText = document.getElementById('party-alt-text');
+
+    // モード選択
+    function selectMode(mode) {
+        initAudio();
+        currentMode = mode;
+        currentQuestionIndex = 0;
+        score = 0;
+
+        menuScreen.classList.remove('active');
+        gameScreen.classList.add('active');
+
+        choiceArea.style.display = (mode === 'choice') ? 'block' : 'none';
+        soloArea.style.display = (mode === 'solo') ? 'block' : 'none';
+        partyArea.style.display = (mode === 'party') ? 'block' : 'none';
+        
+        showQuestion();
+    }
+
+    // 問題表示
+    function showQuestion() {
+        const q = quizData[currentQuestionIndex];
+        questionText.textContent = q.abbr;
+        
+        const progress = ((currentQuestionIndex) / quizData.length) * 100;
+        progressBar.style.width = `${progress}%`;
+
+        commonResultArea.style.display = "none";
+
+        if (currentMode === 'choice') {
+            setupChoiceMode(q);
+        } else if (currentMode === 'solo') {
+            setupSoloMode();
+        } else {
+            setupPartyMode();
+        }
+        
+        // 画面上部へスクロール（スマホ対策）
+        window.scrollTo(0, 0);
+    }
+
+    // --- 4択モードロジック ---
+    function setupChoiceMode(currentQ) {
+        choicesContainer.innerHTML = ''; 
+        const correctAnswer = currentQ.formal[0];
+        
+        const otherQuestions = quizData.filter((_, index) => index !== currentQuestionIndex);
+        const shuffledOthers = [...otherQuestions].sort(() => 0.5 - Math.random());
+        const dummyAnswers = shuffledOthers.slice(0, 3).map(q => q.formal[0]);
+        
+        let choices = [correctAnswer, ...dummyAnswers];
+        choices = choices.sort(() => 0.5 - Math.random());
+
+        choices.forEach(choiceText => {
+            const btn = document.createElement('button');
+            btn.className = 'choice-btn';
+            btn.textContent = choiceText;
+            btn.onclick = () => checkChoiceAnswer(choiceText, btn, correctAnswer);
+            choicesContainer.appendChild(btn);
+        });
+    }
+
+    function checkChoiceAnswer(selectedText, clickedBtn, correctAnswer) {
+        const buttons = choicesContainer.getElementsByClassName('choice-btn');
+        for (let btn of buttons) {
+            btn.disabled = true;
+            if (btn.textContent === correctAnswer) {
+                btn.classList.add('correct-choice');
+            }
+        }
+        const isCorrect = (selectedText === correctAnswer);
+        if (isCorrect) score++;
+        else clickedBtn.classList.add('wrong-choice');
+        
+        showCommonResult(isCorrect, correctAnswer);
+    }
+
+
+    // --- ひとりモードロジック ---
+    function setupSoloMode() {
+        answerInput.value = "";
+        answerInput.disabled = false;
+        soloSubmitBtn.style.display = "inline-block";
+        // スマホでキーボードが出てもスクロール位置調整
+        setTimeout(() => answerInput.focus(), 100);
+    }
+
+    function normalizeString(str) {
+        return str.replace(/[\s　・]/g, "")
+                  .replace(/[ぁ-ん]/g, s => String.fromCharCode(s.charCodeAt(0) + 0x60));
+    }
+
+    function checkSoloAnswer() {
+        const userAnswer = normalizeString(answerInput.value);
+        const correctAnswers = quizData[currentQuestionIndex].formal;
+        let isCorrect = false;
+        for (let ans of correctAnswers) {
+            if (userAnswer === normalizeString(ans)) {
+                isCorrect = true; break;
+            }
+        }
+        answerInput.disabled = true;
+        soloSubmitBtn.style.display = "none";
+        showCommonResult(isCorrect, correctAnswers[0]);
+    }
+
+    // --- 共通結果表示 ---
+    function showCommonResult(isCorrect, mainCorrectAnswer) {
+        commonResultArea.style.display = "block";
+        commonCorrectText.textContent = mainCorrectAnswer;
+
+        if (isCorrect) {
+            resultMessage.textContent = "正解！⭕️";
+            resultMessage.className = "correct";
+            playSound('correct');
+        } else {
+            resultMessage.textContent = "残念...❌";
+            resultMessage.className = "incorrect";
+            playSound('wrong');
+        }
+    }
+
+    // --- みんなモードロジック ---
+    function setupPartyMode() {
+        partyRevealBtn.style.display = "inline-block";
+        partyAnswerBox.style.display = "none";
+    }
+
+    function revealPartyAnswer() {
+        const q = quizData[currentQuestionIndex];
+        partyCorrectText.textContent = q.formal[0];
+        if (q.formal.length > 1) {
+            partyAltText.textContent = q.formal.slice(1).join(', ');
+            partyAltText.parentNode.style.display = "block";
+        } else {
+            partyAltText.parentNode.style.display = "none";
+        }
+        partyRevealBtn.style.display = "none";
+        partyAnswerBox.style.display = "block";
+        playSound('correct');
+    }
+
+    // --- 進行・終了 ---
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < quizData.length) {
+            showQuestion();
+        } else {
+            showEndScreen();
+        }
+    }
+
+    function showEndScreen() {
+        gameScreen.classList.remove('active');
+        endScreen.classList.add('active');
+
+        if (currentMode === 'choice' || currentMode === 'solo') {
+            document.getElementById('scored-end-area').style.display = 'block';
+            document.getElementById('party-end-area').style.display = 'none';
+            document.getElementById('final-score').textContent = score;
+            document.getElementById('total-count').textContent = quizData.length;
+            
+            const feedback = document.getElementById('feedback-comment');
+            const maxScore = quizData.length;
+            if (score === maxScore) feedback.textContent = "完璧です！雑学王！👑";
+            else if (score >= maxScore * 0.7) feedback.textContent = "すごい！かなり詳しいですね👏";
+            else if (score >= maxScore * 0.4) feedback.textContent = "まあまあですね！👍";
+            else feedback.textContent = "伸び代がありますね...！🌱";
+        } else {
+            document.getElementById('scored-end-area').style.display = 'none';
+            document.getElementById('party-end-area').style.display = 'block';
+        }
+    }
+
+    // Enterキー対応
+    answerInput.addEventListener("keypress", function(event) {
+        if (currentMode === 'solo' && event.key === "Enter") {
+            if (soloSubmitBtn.style.display !== "none") {
+                checkSoloAnswer();
+            } else if (commonResultArea.style.display !== "none") {
+                nextQuestion();
+            }
+        }
+    });
+
+</script>
+
+</body>
+</html>
