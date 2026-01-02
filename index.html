@@ -410,7 +410,7 @@
         return arr;
     }
 
-    /* --- AI生成ロジック --- */
+    /* --- AI生成ロジック (詳細エラー表示版) --- */
     async function startAIGame() {
         const apiKey = apiKeyInput.value.trim();
         if(!apiKey) {
@@ -448,16 +448,28 @@
                 })
             });
 
-            if (!response.ok) throw new Error("API Error");
+            // ★エラー判定を強化
+            if (!response.ok) {
+                // Googleからの詳細なエラーメッセージを取得
+                const errorData = await response.json().catch(() => null);
+                const errorMsg = errorData?.error?.message || `HTTP Status: ${response.status}`;
+                throw new Error(errorMsg);
+            }
 
             const data = await response.json();
+            
+            // 安全対策：データ構造のチェック
+            if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+                throw new Error("AIからの応答が空でした。");
+            }
+
             let rawText = data.candidates[0].content.parts[0].text;
             
-            // JSONの整形（Markdown記法の除去）
+            // JSONの整形
             rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
             const aiQuestions = JSON.parse(rawText);
 
-            // データの整形（type付与）
+            // データの整形
             aiQuestions.forEach(q => q.type = 'ai');
             
             activeQuestionList = aiQuestions;
@@ -467,7 +479,8 @@
         } catch (e) {
             loadingOverlay.style.display = "none";
             console.error(e);
-            alert("問題生成に失敗しました。\nAPIキーが正しいか確認するか、時間を置いて試してください。\n(エラー: " + e.message + ")");
+            // 詳細なエラーをアラートに表示
+            alert("エラーが発生しました。\n以下のメッセージを確認してください：\n\n" + e.message);
         }
     }
 
