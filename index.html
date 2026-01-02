@@ -444,10 +444,20 @@
         document.querySelectorAll('.play-mode-btn').forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
     }
+
+    // ★修正箇所：メニュー展開時に自動スクロール
     function toggleGalMenu() {
         const m = document.getElementById('gal-era-select');
-        m.style.display = (m.style.display==='none')?'block':'none';
+        if (m.style.display === 'none') {
+            m.style.display = 'block';
+            setTimeout(() => {
+                m.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 50);
+        } else {
+            m.style.display = 'none';
+        }
     }
+
     function shuffleArray(arr) {
         for(let i=arr.length-1; i>0; i--){
             const j=Math.floor(Math.random()*(i+1));
