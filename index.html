@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>略語正式名称クイズ（AI無限生成版）</title>
+    <title>略語正式名称クイズ</title>
     <style>
         /* --- ベース設定 --- */
         :root {
@@ -15,9 +15,6 @@
             --text-color: #333;
             
             /* モード別カラー */
-            --ai-primary: #8e44ad; /* AI Purple */
-            --ai-bg: #f3e5f5;
-            
             --gal-primary: #ff69b4;
             --gal-bg: #fff0f5;
             --police-primary: #2c3e50;
@@ -45,7 +42,6 @@
             transition: background-color 0.5s;
         }
 
-        body.ai-mode { background-color: var(--ai-bg); --primary-color: var(--ai-primary); }
         body.gal-mode { background-color: var(--gal-bg); --primary-color: var(--gal-primary); }
         body.police-mode { background-color: var(--police-bg); --primary-color: var(--police-primary); }
         body.biz-mode { background-color: var(--biz-bg); --primary-color: var(--biz-primary); }
@@ -86,25 +82,6 @@
         .btn-otaku { background-color: #9b59b6; }
         .btn-gal { background-color: #ff69b4; }
         
-        /* AIボタン */
-        .btn-ai { 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            box-shadow: 0 4px 0 #5a3b7e;
-        }
-
-        /* APIキー設定 */
-        .api-settings {
-            margin-top: 20px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            font-size: 0.9rem;
-        }
-        .api-input {
-            width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; margin-top: 5px;
-        }
-
         .play-mode-selector { display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; }
         .play-mode-btn {
             padding: 8px 14px; border: 1px solid #ccc; border-radius: 20px;
@@ -165,19 +142,6 @@
         .progress-bar { height: 100%; background-color: var(--success-color); width: 0%; transition: width 0.3s; }
         .back-link { display: inline-block; margin-top: 25px; color: #999; text-decoration: underline; cursor: pointer; font-size: 0.9rem; padding: 10px; }
 
-        /* ローディング */
-        .loading-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.9); display: none;
-            flex-direction: column; justify-content: center; align-items: center;
-            border-radius: 16px; z-index: 10;
-        }
-        .spinner {
-            width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db;
-            border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 10px;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
         @media (max-width: 480px) {
             .container { padding: 1.5rem 1rem; }
             h1 { font-size: 1.3rem; }
@@ -189,7 +153,7 @@
 
 <div class="container">
     <h1 id="app-title">略語正式名称クイズ</h1>
-    <p class="subtitle">AIなら問題は無限大！<br>APIキーを入れて遊んでね</p>
+    <p class="subtitle">その言葉、本当の名前知ってる？</p>
 
     <div id="menu-screen" class="screen active">
         
@@ -203,16 +167,7 @@
         </div>
 
         <div style="height: 320px; overflow-y: auto; padding-right: 5px;">
-            
-            <button class="menu-btn btn-ai" onclick="startAIGame()">
-                <div class="menu-btn-content">
-                    <span>🤖 AI無限生成モード</span>
-                    <span class="menu-desc">Geminiがその場で問題作成！</span>
-                </div>
-                <span>✨</span>
-            </button>
-            
-            <p style="font-size:0.9rem; font-weight:bold; margin:15px 0 5px;">通常コース（オフライン）</p>
+            <p style="font-size:0.9rem; font-weight:bold; margin-bottom:5px;">コース選択</p>
 
             <button class="menu-btn btn-std" onclick="startSpecialGame('std')">
                 <div class="menu-btn-content">
@@ -259,21 +214,11 @@
                 <button class="era-btn" onclick="startGalGame('heisei')">🌺 平成ギャル</button>
                 <button class="era-btn" onclick="startGalGame('reiwa')">📱 令和ギャル</button>
             </div>
-
-            <div class="api-settings">
-                <div style="font-weight:bold; margin-bottom:5px;">⚙️ Gemini API設定</div>
-                <div style="font-size:0.8rem; color:#666;">AIモードを使うにはキーが必要です。<br>（ブラウザにのみ保存されます）</div>
-                <input type="password" id="api-key-input" class="api-input" placeholder="AIzaSy..." onchange="saveApiKey()">
-            </div>
         </div>
+        <p style="font-size:0.75rem; color:#aaa; margin-top:10px;">※音が出ます 🔈</p>
     </div>
 
     <div id="game-screen" class="screen">
-        <div class="loading-overlay" id="loading-overlay">
-            <div class="spinner"></div>
-            <p>AIが問題を考えています...<br>（数秒かかります）</p>
-        </div>
-
         <div class="progress-container"><div id="progress-bar" class="progress-bar"></div></div>
         
         <div class="question-box">
@@ -319,11 +264,6 @@
             <p style="font-size:1.5rem; font-weight:bold;">正解数: <span id="final-score">0</span> / <span id="total-count">0</span></p>
             <div id="feedback-comment" style="margin: 1.5rem 0; font-size:1.1rem;"></div>
         </div>
-        
-        <button id="ai-reload-btn" class="action-btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display:none; margin-bottom:10px;" onclick="startAIGame()">
-            ✨ 違う問題を生成する
-        </button>
-
         <button class="action-btn" onclick="location.reload()">タイトルに戻る</button>
     </div>
 </div>
@@ -354,6 +294,17 @@
     const masterQuizData = [
         { abbr: "スマホ", formal: ["スマートフォン"], type: 'std', level: 1 },
         { abbr: "パソコン", formal: ["パーソナルコンピュータ"], type: 'std', level: 1 },
+        { abbr: "食パン", formal: ["主食用パン"], type: 'std', level: 2 },
+        { abbr: "軍手", formal: ["軍用手袋"], type: 'std', level: 2 },
+        { abbr: "カラオケ", formal: ["空オーケストラ"], type: 'std', level: 3 },
+        { abbr: "ドタキャン", formal: ["土壇場キャンセル"], type: 'std', level: 3 },
+        { abbr: "ガサ入れ", formal: ["捜索差押"], type: 'police', level: 1 },
+        { abbr: "デカ", formal: ["刑事"], type: 'police', level: 1 },
+        { abbr: "OJT", formal: ["On-the-Job Training"], type: 'biz', level: 1 },
+        { abbr: "MTG", formal: ["ミーティング"], type: 'biz', level: 1 },
+        { abbr: "DD", formal: ["誰でも大好き"], type: 'otaku', level: 1 },
+        { abbr: "ナウい", formal: ["現代的"], type: 'gal', era: 'showa' },
+        { abbr: "KP", formal: ["乾杯"], type: 'gal', era: 'reiwa' },
         { abbr: "コンビニ", formal: ["コンビニエンスストア"], type: 'std', level: 1 },
         { abbr: "テレビ", formal: ["テレビジョン"], type: 'std', level: 1 },
         { abbr: "リモコン", formal: ["リモートコントローラー"], type: 'std', level: 1 },
@@ -368,8 +319,6 @@
         { abbr: "トイレ", formal: ["トイレット"], type: 'std', level: 1 },
         { abbr: "バス", formal: ["オムニバス"], type: 'std', level: 1 },
         { abbr: "ピアノ", formal: ["ピアノフォルテ"], type: 'std', level: 1 },
-        { abbr: "食パン", formal: ["主食用パン"], type: 'std', level: 2 },
-        { abbr: "軍手", formal: ["軍用手袋"], type: 'std', level: 2 },
         { abbr: "切手", formal: ["切符手形"], type: 'std', level: 2 },
         { abbr: "経済", formal: ["経世済民"], type: 'std', level: 2 },
         { abbr: "教科書", formal: ["教科用図書"], type: 'std', level: 2 },
@@ -382,8 +331,6 @@
         { abbr: "農協", formal: ["農業協同組合"], type: 'std', level: 2 },
         { abbr: "就活", formal: ["就職活動"], type: 'std', level: 2 },
         { abbr: "ブログ", formal: ["ウェブログ"], type: 'std', level: 2 },
-        { abbr: "カラオケ", formal: ["空オーケストラ"], type: 'std', level: 3 },
-        { abbr: "ドタキャン", formal: ["土壇場キャンセル"], type: 'std', level: 3 },
         { abbr: "レーダー", formal: ["電波探知機", "Radio Detection and Ranging"], type: 'std', level: 3 },
         { abbr: "USB", formal: ["ユニバーサル・シリアル・バス"], type: 'std', level: 3 },
         { abbr: "Wi-Fi", formal: ["Wireless Fidelity"], type: 'std', level: 3 },
@@ -395,10 +342,8 @@
         { abbr: "ATM", formal: ["現金自動預け払い機"], type: 'std', level: 3 },
         { abbr: "CM", formal: ["コマーシャルメッセージ"], type: 'std', level: 3 },
         { abbr: "ペペロンチーノ", formal: ["アーリオ・オーリオ・エ・ペペロンチーノ"], type: 'std', level: 3 },
-        { abbr: "デカ", formal: ["刑事"], type: 'police', level: 1 },
         { abbr: "ホシ", formal: ["犯人", "容疑者"], type: 'police', level: 1 },
         { abbr: "バンかけ", formal: ["職務質問"], type: 'police', level: 1 },
-        { abbr: "ガサ入れ", formal: ["家宅捜索", "捜索差押"], type: 'police', level: 1 },
         { abbr: "パトカー", formal: ["パトロールカー"], type: 'police', level: 1 },
         { abbr: "交番", formal: ["交番所"], type: 'police', level: 1 },
         { abbr: "マル暴", formal: ["組織犯罪対策部", "暴力団担当"], type: 'police', level: 2 },
@@ -417,14 +362,12 @@
         { abbr: "完落ち", formal: ["完全自供"], type: 'police', level: 3 },
         { abbr: "赤色灯", formal: ["散光式警光灯"], type: 'police', level: 3 },
         { abbr: "PM", formal: ["Police Man", "警察官"], type: 'police', level: 3 },
-        { abbr: "MTG", formal: ["ミーティング"], type: 'biz', level: 1 },
         { abbr: "CEO", formal: ["Chief Executive Officer", "最高経営責任者"], type: 'biz', level: 1 },
         { abbr: "NG", formal: ["No Good"], type: 'biz', level: 1 },
         { abbr: "アポ", formal: ["アポイントメント"], type: 'biz', level: 1 },
         { abbr: "プレゼン", formal: ["プレゼンテーション"], type: 'biz', level: 1 },
         { abbr: "メモ", formal: ["メモランダム"], type: 'biz', level: 1 },
         { abbr: "クレーム", formal: ["カスタマー苦情", "異議申し立て"], type: 'biz', level: 1 },
-        { abbr: "OJT", formal: ["On-the-Job Training"], type: 'biz', level: 2 },
         { abbr: "PDCA", formal: ["Plan-Do-Check-Act"], type: 'biz', level: 2 },
         { abbr: "ASAP", formal: ["As Soon As Possible", "なるべく早く"], type: 'biz', level: 2 },
         { abbr: "リスケ", formal: ["リスケジュール"], type: 'biz', level: 2 },
@@ -448,7 +391,6 @@
         { abbr: "ネタバレ", formal: ["ネタばらし"], type: 'otaku', level: 1 },
         { abbr: "イケボ", formal: ["イケメンボイス"], type: 'otaku', level: 1 },
         { abbr: "コミュ", formal: ["コミュニティ"], type: 'otaku', level: 1 },
-        { abbr: "DD", formal: ["誰でも大好き"], type: 'otaku', level: 2 },
         { abbr: "同担", formal: ["同じ担当(推し)"], type: 'otaku', level: 2 },
         { abbr: "リアタイ", formal: ["リアルタイム"], type: 'otaku', level: 2 },
         { abbr: "スパチャ", formal: ["スーパーチャット"], type: 'otaku', level: 2 },
@@ -465,7 +407,6 @@
         { abbr: "鯖", formal: ["サーバー"], type: 'otaku', level: 3 },
         { abbr: "夢女子", formal: ["夢小説好きな女性"], type: 'otaku', level: 3 },
         { abbr: "同担拒否", formal: ["同じ推しのファンお断り"], type: 'otaku', level: 3 },
-        { abbr: "ナウい", formal: ["現代的"], type: 'gal', era: 'showa' },
         { abbr: "マブダチ", formal: ["親友"], type: 'gal', era: 'showa' },
         { abbr: "ドロン", formal: ["消える"], type: 'gal', era: 'showa' },
         { abbr: "アッシー", formal: ["足代わりの男"], type: 'gal', era: 'showa' },
@@ -477,7 +418,6 @@
         { abbr: "KY", formal: ["空気読めない"], type: 'gal', era: 'heisei' },
         { abbr: "MM", formal: ["マジむかつく"], type: 'gal', era: 'heisei' },
         { abbr: "アゲぽよ", formal: ["テンション高い"], type: 'gal', era: 'heisei' },
-        { abbr: "KP", formal: ["乾杯"], type: 'gal', era: 'reiwa' },
         { abbr: "り", formal: ["了解"], type: 'gal', era: 'reiwa' },
         { abbr: "フロリダ", formal: ["風呂入るから離脱"], type: 'gal', era: 'reiwa' },
         { abbr: "きまZ", formal: ["気まずい"], type: 'gal', era: 'reiwa' },
@@ -498,17 +438,6 @@
     const endScreen = document.getElementById('end-screen');
     const questionText = document.getElementById('question-text');
     const infoBadge = document.getElementById('info-badge');
-    const loadingOverlay = document.getElementById('loading-overlay');
-    const apiKeyInput = document.getElementById('api-key-input');
-
-    // APIキー読み込み
-    window.onload = () => {
-        const savedKey = localStorage.getItem('gemini_api_key');
-        if(savedKey) apiKeyInput.value = savedKey;
-    };
-    function saveApiKey() {
-        localStorage.setItem('gemini_api_key', apiKeyInput.value.trim());
-    }
 
     function setPlayMode(mode, btn) {
         currentPlayMode = mode;
@@ -527,70 +456,6 @@
         return arr;
     }
 
-    /* --- AI生成ロジック (モデル名修正版) --- */
-    async function startAIGame() {
-        const apiKey = apiKeyInput.value.trim();
-        if(!apiKey) {
-            alert("APIキーを入力してください。\n（Google AI Studioで無料で取得できます）");
-            return;
-        }
-
-        initAudio();
-        loadingOverlay.style.display = "flex";
-        currentType = 'ai';
-        document.body.className = 'ai-mode';
-        
-        try {
-            const prompt = `
-            あなたはクイズ作成AIです。
-            「略語の正式名称クイズ」または「業界用語の意味クイズ」を新しく5問作成し、JSON配列形式で出力してください。
-            
-            【条件】
-            1. 一般的な略語、ビジネス用語、IT用語、若者言葉、業界隠語などからランダムに選ぶこと。
-            2. 回答は必ず有効なJSON配列のみを出力すること（Markdownのbacktickなどは不要）。
-            3. フォーマット:
-            [
-              { "abbr": "略語または用語", "formal": ["正式名称1", "正式名称2"], "level": 1〜3の難易度 }
-            ]
-            `;
-
-            // ★修正ポイント：モデル名を 'gemini-1.5-flash-latest' に変更しました
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }]
-                })
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => null);
-                const errorMsg = errorData?.error?.message || `HTTP Status: ${response.status}`;
-                throw new Error(errorMsg);
-            }
-
-            const data = await response.json();
-            
-            if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-                throw new Error("AIからの応答が空でした。");
-            }
-
-            let rawText = data.candidates[0].content.parts[0].text;
-            rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-            const aiQuestions = JSON.parse(rawText);
-
-            aiQuestions.forEach(q => q.type = 'ai');
-            activeQuestionList = aiQuestions;
-            loadingOverlay.style.display = "none";
-            startGameCommon();
-
-        } catch (e) {
-            loadingOverlay.style.display = "none";
-            console.error(e);
-            alert("エラーが発生しました。\n" + e.message);
-        }
-    }
-
     /* --- 通常ゲーム開始 --- */
     function startSpecialGame(type) {
         initAudio();
@@ -601,10 +466,11 @@
         else if(type === 'otaku') document.body.classList.add('otaku-mode');
 
         const targetData = masterQuizData.filter(q => q.type === type);
-        // 簡易シャッフル
+        // 簡易シャッフル (全件からランダムに10問)
         activeQuestionList = shuffleArray(targetData).slice(0, 10);
         
-        if(activeQuestionList.length === 0) activeQuestionList = masterQuizData.slice(0,5); // fallback
+        // データ不足時のフォールバック
+        if(activeQuestionList.length === 0) activeQuestionList = masterQuizData.slice(0,5);
         startGameCommon();
     }
 
@@ -650,12 +516,10 @@
     }
 
     function getBadgeText(q) {
-        if(currentType === 'ai') return "AI生成問";
         if(currentType === 'gal') return (q.era==='showa')?"昭和":(q.era==='heisei')?"平成":"令和";
         return "LEVEL " + (q.level || "?");
     }
     function getBadgeColor(q) {
-        if(currentType === 'ai') return "#8e44ad";
         if(currentType === 'police') return "#f1c40f";
         if(currentType === 'biz') return "#003366";
         if(currentType === 'otaku') return "#8e44ad";
@@ -670,7 +534,6 @@
         const correct = q.formal[0];
         
         // ダミー選択肢生成
-        // AIモードの場合、マスタデータからランダムに取る
         let pool = masterQuizData.filter(d => d.formal[0] !== correct);
         const dummies = shuffleArray(pool).slice(0,3).map(d => d.formal[0]);
         let choices = shuffleArray([correct, ...dummies]);
@@ -733,7 +596,7 @@
         if(isCor) {
             playSound('correct');
             msg.className = "correct";
-            msg.textContent = (currentType==='ai')?"AIも感心してます！":"正解！⭕️";
+            msg.textContent = "正解！⭕️";
         } else {
             playSound('wrong');
             msg.className = "incorrect";
@@ -751,10 +614,6 @@
         gameScreen.classList.remove('active');
         endScreen.classList.add('active');
         
-        // AIモードなら再生成ボタン表示
-        const aiBtn = document.getElementById('ai-reload-btn');
-        aiBtn.style.display = (currentType === 'ai') ? 'inline-block' : 'none';
-
         if(currentPlayMode !== 'party') {
             document.getElementById('scored-end-area').style.display='block';
             document.getElementById('final-score').textContent = score;
