@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>略語正式名称クイズ（AI無限生成）</title>
+    <title>略語正式名称クイズ（完全版）</title>
     <style>
         /* --- ベース設定 --- */
         :root {
@@ -16,87 +16,223 @@
             --otaku-primary: #9b59b6; --otaku-bg: #f3e5f5;
         }
         * { box-sizing: border-box; }
-        body { font-family: sans-serif; background-color: var(--bg-color); color: var(--text-color); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 10px; transition: background 0.5s; }
-        
-        body.ai-mode { background: var(--ai-bg); --primary-color: var(--ai-primary); }
-        body.gal-mode { background: var(--gal-bg); --primary-color: var(--gal-primary); }
-        body.police-mode { background: var(--police-bg); --primary-color: var(--police-primary); }
-        
-        .container { background: white; padding: 2rem; border-radius: 16px; width: 100%; max-width: 500px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: relative; }
-        .screen { display: none; } .screen.active { display: block; animation: fadeIn 0.3s; }
+        body {
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; margin: 0; padding: 10px;
+            user-select: none; -webkit-tap-highlight-color: transparent;
+            transition: background-color 0.5s;
+        }
+
+        /* モードスタイル */
+        body.ai-mode { background-color: var(--ai-bg); --primary-color: var(--ai-primary); }
+        body.gal-mode { background-color: var(--gal-bg); --primary-color: var(--gal-primary); }
+        body.police-mode { background-color: var(--police-bg); --primary-color: var(--police-primary); }
+        body.biz-mode { background-color: var(--biz-bg); --primary-color: var(--biz-primary); }
+        body.otaku-mode { background-color: var(--otaku-bg); --primary-color: var(--otaku-primary); }
+
+        .container {
+            background-color: white; padding: 2rem; border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 500px;
+            text-align: center; position: relative;
+        }
+
+        h1 { color: #2c3e50; margin-bottom: 0.5rem; font-size: 1.5rem; }
+        .subtitle { color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1.5rem; }
+        .screen { display: none; }
+        .screen.active { display: block; animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* ボタン類 */
-        .menu-btn { width: 100%; padding: 1rem; margin: 8px 0; border-radius: 12px; border: none; cursor: pointer; color: white; font-weight: bold; text-align: left; display: flex; justify-content: space-between; align-items: center; }
-        .btn-ai { background: linear-gradient(135deg, #667eea, #764ba2); box-shadow: 0 4px 0 #5a3b7e; }
-        .btn-std { background: #3498db; } .btn-police { background: #2c3e50; } .btn-gal { background: #ff69b4; }
-        .action-btn { width: 100%; padding: 14px; border-radius: 50px; border: none; background: var(--primary-color); color: white; font-weight: bold; margin-top: 15px; cursor: pointer; }
-        
-        /* クイズ表示 */
-        .question-box { background: #eef2f7; padding: 20px; border-radius: 10px; margin-bottom: 20px; min-height: 120px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .abbr-text { font-size: 2rem; font-weight: bold; color: var(--primary-color); }
-        .choice-btn { width: 100%; padding: 15px; margin-bottom: 10px; border: 2px solid #ccc; background: white; border-radius: 10px; font-weight: bold; cursor: pointer; }
-        .correct-choice { background: #27ae60 !important; color: white; border-color: #27ae60 !important; }
-        .wrong-choice { background: #e74c3c !important; color: white; border-color: #e74c3c !important; }
-        
-        /* ローディング */
-        .loading-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.9); display:none; flex-direction:column; justify-content:center; align-items:center; z-index:10; border-radius:16px; }
-        .spinner { width: 40px; height: 40px; border: 4px solid #ddd; border-top: 4px solid #8e44ad; border-radius: 50%; animation: spin 1s infinite; margin-bottom: 10px; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        
-        /* その他 */
-        .result-box { background: #fafafa; padding: 20px; border-radius: 10px; text-align: center; border: 1px solid #eee; display: none; }
-        .back-link { display: block; margin-top: 20px; color: #999; text-decoration: underline; cursor: pointer; }
-        input[type="text"] { width: 100%; padding: 12px; font-size: 1.2rem; border: 2px solid #ddd; border-radius: 8px; text-align: center; margin-bottom: 10px; }
-        .play-mode-btn { padding: 5px 15px; border: 1px solid #ccc; border-radius: 20px; background: white; margin: 0 5px; cursor: pointer; }
+        /* ボタン */
+        .menu-btn {
+            display: flex; align-items: center; justify-content: space-between;
+            width: 100%; margin: 8px 0; padding: 1rem; font-size: 1rem;
+            border-radius: 12px; border: none; cursor: pointer;
+            transition: transform 0.1s; font-weight: bold; color: white;
+            text-align: left; box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+        }
+        .menu-btn:active { transform: translateY(4px); box-shadow: none; }
+        .menu-desc { font-size: 0.75rem; font-weight: normal; display:block; opacity:0.9; }
+
+        .btn-std { background-color: #3498db; }
+        .btn-police { background-color: #2c3e50; border-left: 5px solid #f1c40f; }
+        .btn-biz { background-color: #0047AB; }
+        .btn-otaku { background-color: #9b59b6; }
+        .btn-gal { background-color: #ff69b4; }
+        .btn-ai { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); box-shadow: 0 4px 0 #5a3b7e; }
+
+        .play-mode-selector { display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; }
+        .play-mode-btn {
+            padding: 8px 14px; border: 1px solid #ccc; border-radius: 20px;
+            background: white; cursor: pointer; font-size: 0.85rem;
+        }
         .play-mode-btn.selected { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+
+        .era-btn {
+            width: 100%; margin: 5px 0; padding: 0.8rem; font-size: 0.9rem;
+            border-radius: 50px; border: 2px solid #ff69b4;
+            background: white; color: #ff69b4; font-weight: bold; cursor: pointer;
+        }
+
+        .question-box {
+            background-color: #eef2f7; padding: 1.5rem; border-radius: 10px;
+            margin-bottom: 1.5rem; min-height: 140px; display: flex;
+            flex-direction: column; justify-content: center; align-items: center; position: relative;
+        }
+        .badge {
+            position: absolute; top: -10px; right: 10px; color: #fff;
+            padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .abbr-text { font-size: 2.0rem; font-weight: bold; color: var(--primary-color); margin: 0; line-height: 1.2; }
+
+        .choices-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .choice-btn {
+            background-color: white; border: 2px solid #bdc3c7; color: #333;
+            padding: 14px; font-size: 0.95rem; border-radius: 10px;
+            cursor: pointer; font-weight: bold; transition: all 0.2s;
+            overflow-wrap: break-word; word-wrap: break-word;
+        }
+        .choice-btn.correct-choice { background-color: #27ae60 !important; color: white !important; border-color: #27ae60 !important; }
+        .choice-btn.wrong-choice { background-color: #e74c3c !important; color: white !important; border-color: #e74c3c !important; }
+
+        .action-btn {
+            background-color: var(--primary-color); color: white; border: none;
+            padding: 14px 20px; font-size: 1.1rem; border-radius: 50px;
+            cursor: pointer; font-weight: bold; width: 100%; max-width: 300px;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2); margin-top: 10px;
+        }
+        .action-btn:active { transform: translateY(4px); box-shadow: none; }
+
+        input[type="text"] {
+            width: 100%; padding: 14px; font-size: 1.2rem; border: 2px solid #ddd;
+            border-radius: 8px; margin-bottom: 1rem; text-align: center; outline: none;
+        }
+        
+        .result-box {
+            background: #fafafa; padding: 20px; border-radius: 10px;
+            margin-top: 10px; text-align: center; border: 1px solid #eee; display: none;
+        }
+        #result-msg { font-size: 1.6rem; font-weight: bold; margin: 0.5rem 0; }
+        .correct { color: #27ae60; } .incorrect { color: #e74c3c; }
+
+        .progress-bar { width: 100%; background: #eee; height: 6px; border-radius: 3px; margin-bottom: 1.5rem; overflow: hidden; }
+        .progress-fill { height: 100%; background: #27ae60; width: 0%; transition: width 0.3s; }
+        .back-link { display: inline-block; margin-top: 25px; color: #999; text-decoration: underline; cursor: pointer; padding: 10px; }
+
+        /* ローディング */
+        .loading-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.95); display: none;
+            flex-direction: column; justify-content: center; align-items: center;
+            border-radius: 16px; z-index: 10; padding: 20px; text-align:center;
+        }
+        .spinner {
+            width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #8e44ad;
+            border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        @media (max-width: 480px) {
+            .container { padding: 1.5rem 1rem; }
+            h1 { font-size: 1.3rem; }
+            .abbr-text { font-size: 1.6rem; }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>略語正式名称クイズ</h1>
-    <p style="color:#666; font-size:0.9rem;">AI搭載！無限に遊べるよ</p>
+    <h1 id="app-title">略語正式名称クイズ</h1>
+    <p class="subtitle">AI搭載！無限に遊べるよ</p>
 
     <div id="menu-screen" class="screen active">
-        <div style="margin-bottom:15px;">
-            <button class="play-mode-btn selected" onclick="setMode('choice', this)">🤔 4択</button>
-            <button class="play-mode-btn" onclick="setMode('solo', this)">⌨️ 入力</button>
-            <button class="play-mode-btn" onclick="setMode('party', this)">🗣️ みんな</button>
+        
+        <div style="margin-bottom: 15px; border-bottom:1px solid #eee; padding-bottom:10px;">
+            <p style="font-size:0.8rem; color:#666; margin-bottom:5px;">遊び方</p>
+            <div class="play-mode-selector">
+                <button class="play-mode-btn selected" onclick="setPlayMode('choice', this)">🤔 4択</button>
+                <button class="play-mode-btn" onclick="setPlayMode('solo', this)">⌨️ 入力</button>
+                <button class="play-mode-btn" onclick="setPlayMode('party', this)">🗣️ みんな</button>
+            </div>
         </div>
 
-        <button class="menu-btn btn-ai" onclick="startAIGame()">
-            <div><span>🤖 AI無限生成モード</span><br><span style="font-size:0.75rem; opacity:0.9;">APIキー不要！AIが即興作成</span></div><span>✨</span>
-        </button>
-        
-        <p style="font-size:0.8rem; font-weight:bold; margin:15px 0 5px;">通常コース</p>
-        <button class="menu-btn btn-std" onclick="startLocalGame('std')">📘 一般常識</button>
-        <button class="menu-btn btn-police" onclick="startLocalGame('police')">👮 警察・刑事</button>
-        <button class="menu-btn btn-gal" onclick="startLocalGame('gal')">💖 ギャル語</button>
+        <div style="height: 320px; overflow-y: auto; padding-right: 5px;">
+            
+            <button class="menu-btn btn-ai" onclick="startAIGame()">
+                <div class="menu-btn-content">
+                    <span>🤖 AI無限生成モード</span>
+                    <span class="menu-desc">誰でも遊べる！AIが即興作成</span>
+                </div>
+                <span>✨</span>
+            </button>
+            
+            <p style="font-size:0.9rem; font-weight:bold; margin:15px 0 5px;">通常コース（オフライン）</p>
+
+            <button class="menu-btn btn-std" onclick="startSpecialGame('std')">
+                <div class="menu-btn-content"><span>📘 一般常識</span><span class="menu-desc">レベル順に出題</span></div><span>▶</span>
+            </button>
+            <button class="menu-btn btn-police" onclick="startSpecialGame('police')">
+                <div class="menu-btn-content"><span>👮 警察・刑事</span><span class="menu-desc">デカ、ガサ入れ...</span></div><span>▶</span>
+            </button>
+            <button class="menu-btn btn-biz" onclick="startSpecialGame('biz')">
+                <div class="menu-btn-content"><span>💼 ビジネス・IT</span><span class="menu-desc">MTG、アジェンダ...</span></div><span>▶</span>
+            </button>
+            <button class="menu-btn btn-otaku" onclick="startSpecialGame('otaku')">
+                <div class="menu-btn-content"><span>🤓 オタク・推し活</span><span class="menu-desc">尊い、同担...</span></div><span>▶</span>
+            </button>
+            <button class="menu-btn btn-gal" onclick="toggleGalMenu()">
+                <div class="menu-btn-content"><span>💖 ギャル語</span><span class="menu-desc">昭和・平成・令和</span></div><span>▼</span>
+            </button>
+            
+            <div id="gal-era-select" style="display:none; margin-top:5px;">
+                <button class="era-btn" onclick="startGalGame('showa')">📼 昭和ギャル</button>
+                <button class="era-btn" onclick="startGalGame('heisei')">🌺 平成ギャル</button>
+                <button class="era-btn" onclick="startGalGame('reiwa')">📱 令和ギャル</button>
+            </div>
+        </div>
     </div>
 
     <div id="game-screen" class="screen">
-        <div class="loading-overlay" id="loading">
+        <div class="loading-overlay" id="loading-overlay">
             <div class="spinner"></div>
             <div>AIが問題を生成中...<br><span style="font-size:0.8rem">※10秒ほどかかる場合があります</span></div>
         </div>
 
-        <div class="question-box">
-            <span style="font-size:0.8rem; color:#666;">これの正式名称（意味）は？</span>
-            <div id="q-text" class="abbr-text"></div>
-        </div>
-
-        <div id="choice-area"></div>
+        <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
         
-        <div id="solo-area" style="display:none;">
-            <input type="text" id="input-ans" placeholder="ここに入力...">
-            <button class="action-btn" onclick="checkInput()">回答する</button>
+        <div class="question-box">
+            <div id="info-badge" class="badge" style="background:#ccc;">CATEGORY</div>
+            <span class="label">これの正式名称（意味）は？</span>
+            <div id="question-text" class="abbr-text"></div>
         </div>
 
-        <div id="result-box" class="result-box">
-            <div id="res-msg" style="font-size:1.5rem; font-weight:bold; margin-bottom:10px;"></div>
-            <div>正解：<strong id="res-ans"></strong></div>
-            <button class="action-btn" onclick="nextQ()">次へ</button>
+        <div id="choice-area" style="display:none;">
+            <div id="choices-container" class="choices-container"></div>
+        </div>
+
+        <div id="solo-area" style="display:none;">
+            <input type="text" id="answer-input" placeholder="ここに入力..." autocomplete="off">
+            <br>
+            <button id="solo-submit-btn" class="action-btn" onclick="checkSoloAnswer()">回答する</button>
+        </div>
+
+        <div id="result-area" class="result-box" style="display:none;">
+            <div id="result-msg"></div>
+            <div style="margin-top:10px;">正解は：<br><strong id="correct-text" style="font-size:1.3rem;"></strong></div>
+            <button class="action-btn" onclick="nextQuestion()">次へ進む</button>
+        </div>
+
+        <div id="party-area" style="display:none;">
+            <button id="party-reveal-btn" class="action-btn" style="background-color:#e67e22;" onclick="revealPartyAnswer()">正解を見る</button>
+            <div id="party-answer-box" style="display:none; margin:20px 0; border:2px dashed #ccc; padding:20px;">
+                <div id="party-correct-text" style="font-size:1.6rem; font-weight:bold; color:#e74c3c;"></div>
+                <div style="color:#777;">（他：<span id="party-alt-text"></span>）</div>
+                <br>
+                <button class="action-btn" onclick="nextQuestion()">次へ進む</button>
+            </div>
         </div>
 
         <div class="back-link" onclick="location.reload()">タイトルに戻る</div>
@@ -104,131 +240,247 @@
 
     <div id="end-screen" class="screen">
         <h2>終了！</h2>
-        <p style="font-size:1.5rem; font-weight:bold;">正解数: <span id="score-disp"></span></p>
-        <button id="retry-ai" class="action-btn btn-ai" style="display:none;" onclick="startAIGame()">✨ 違う問題を生成</button>
+        <div id="scored-end-area">
+            <p style="font-size:1.5rem; font-weight:bold;">正解数: <span id="final-score">0</span> / <span id="total-count">0</span></p>
+        </div>
+        
+        <button id="ai-reload-btn" class="action-btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display:none; margin-bottom:10px;" onclick="startAIGame()">
+            ✨ 違う問題を生成する
+        </button>
+
         <button class="action-btn" onclick="location.reload()">タイトルに戻る</button>
     </div>
 </div>
 
 <script>
-    // --- データ & 変数 ---
-    const localData = [
-        {abbr:"スマホ", formal:["スマートフォン"], type:"std"},
-        {abbr:"デカ", formal:["刑事"], type:"police"},
-        {abbr:"KP", formal:["乾杯"], type:"gal"},
-        {abbr:"パソコン", formal:["パーソナルコンピュータ"], type:"std"},
-        {abbr:"食パン", formal:["主食用パン"], type:"std"},
-        {abbr:"ガサ入れ", formal:["家宅捜索"], type:"police"},
-        {abbr:"チョベリバ", formal:["超ベリーバッド"], type:"gal"}
-    ];
-    let questions=[], qIdx=0, score=0, mode='choice', type='std';
-
-    // --- 操作系 ---
-    function setMode(m, btn) {
-        mode=m; document.querySelectorAll('.play-mode-btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected');
+    let audioCtx;
+    function initAudio() { if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)(); if(audioCtx.state==='suspended') audioCtx.resume(); }
+    function playSound(type) {
+        if(!audioCtx) return; const now=audioCtx.currentTime; const osc=audioCtx.createOscillator(); const gain=audioCtx.createGain();
+        if(type==='correct'){ osc.type='sine'; osc.frequency.setValueAtTime(880,now); osc.frequency.setValueAtTime(1760,now+0.1); gain.gain.linearRampToValueAtTime(0,now+0.4); }
+        else{ osc.type='sawtooth'; osc.frequency.setValueAtTime(150,now); gain.gain.linearRampToValueAtTime(0,now+0.3); }
+        osc.connect(gain); gain.connect(audioCtx.destination); osc.start(now); osc.stop(now+0.4);
     }
 
-    // ★サーバー経由でAI問題を呼ぶ関数
+    /* --- データセット復活（完全版） --- */
+    const masterQuizData = [
+        // STD
+        { abbr: "スマホ", formal: ["スマートフォン"], type: 'std', level: 1 },
+        { abbr: "パソコン", formal: ["パーソナルコンピュータ"], type: 'std', level: 1 },
+        { abbr: "コンビニ", formal: ["コンビニエンスストア"], type: 'std', level: 1 },
+        { abbr: "テレビ", formal: ["テレビジョン"], type: 'std', level: 1 },
+        { abbr: "リモコン", formal: ["リモートコントローラー"], type: 'std', level: 1 },
+        { abbr: "エアコン", formal: ["エアーコンディショナー"], type: 'std', level: 1 },
+        { abbr: "アニメ", formal: ["アニメーション"], type: 'std', level: 1 },
+        { abbr: "デパート", formal: ["デパートメントストア"], type: 'std', level: 1 },
+        { abbr: "スーパー", formal: ["スーパーマーケット"], type: 'std', level: 1 },
+        { abbr: "バイト", formal: ["アルバイト"], type: 'std', level: 1 },
+        { abbr: "食パン", formal: ["主食用パン"], type: 'std', level: 2 },
+        { abbr: "軍手", formal: ["軍用手袋"], type: 'std', level: 2 },
+        { abbr: "切手", formal: ["切符手形"], type: 'std', level: 2 },
+        { abbr: "経済", formal: ["経世済民"], type: 'std', level: 2 },
+        { abbr: "教科書", formal: ["教科用図書"], type: 'std', level: 2 },
+        { abbr: "ボールペン", formal: ["ボールポイントペン"], type: 'std', level: 2 },
+        { abbr: "カラオケ", formal: ["空オーケストラ"], type: 'std', level: 3 },
+        { abbr: "ドタキャン", formal: ["土壇場キャンセル"], type: 'std', level: 3 },
+        { abbr: "レーダー", formal: ["電波探知機"], type: 'std', level: 3 },
+        { abbr: "USB", formal: ["ユニバーサル・シリアル・バス"], type: 'std', level: 3 },
+        { abbr: "Wi-Fi", formal: ["Wireless Fidelity"], type: 'std', level: 3 },
+        { abbr: "DVD", formal: ["デジタル・バーサタイル・ディスク"], type: 'std', level: 3 },
+        // POLICE
+        { abbr: "デカ", formal: ["刑事"], type: 'police', level: 1 },
+        { abbr: "ホシ", formal: ["犯人"], type: 'police', level: 1 },
+        { abbr: "ガサ入れ", formal: ["家宅捜索"], type: 'police', level: 1 },
+        { abbr: "バンかけ", formal: ["職務質問"], type: 'police', level: 1 },
+        { abbr: "マル暴", formal: ["組織犯罪対策部"], type: 'police', level: 2 },
+        { abbr: "ガイシャ", formal: ["被害者"], type: 'police', level: 2 },
+        { abbr: "ヤサ", formal: ["家"], type: 'police', level: 2 },
+        { abbr: "タタキ", formal: ["強盗"], type: 'police', level: 2 },
+        { abbr: "帳場", formal: ["捜査本部"], type: 'police', level: 3 },
+        { abbr: "現着", formal: ["現場到着"], type: 'police', level: 3 },
+        { abbr: "ゲソ", formal: ["足跡"], type: 'police', level: 3 },
+        // BIZ
+        { abbr: "MTG", formal: ["ミーティング"], type: 'biz', level: 1 },
+        { abbr: "CEO", formal: ["最高経営責任者"], type: 'biz', level: 1 },
+        { abbr: "NG", formal: ["No Good"], type: 'biz', level: 1 },
+        { abbr: "アポ", formal: ["アポイントメント"], type: 'biz', level: 1 },
+        { abbr: "OJT", formal: ["On-the-Job Training"], type: 'biz', level: 2 },
+        { abbr: "PDCA", formal: ["Plan-Do-Check-Act"], type: 'biz', level: 2 },
+        { abbr: "ASAP", formal: ["As Soon As Possible"], type: 'biz', level: 2 },
+        { abbr: "リスケ", formal: ["リスケジュール"], type: 'biz', level: 2 },
+        { abbr: "KGI", formal: ["重要目標達成指標"], type: 'biz', level: 3 },
+        { abbr: "KPI", formal: ["重要業績評価指標"], type: 'biz', level: 3 },
+        { abbr: "NR", formal: ["直帰"], type: 'biz', level: 3 },
+        { abbr: "エビデンス", formal: ["証拠"], type: 'biz', level: 3 },
+        // OTAKU
+        { abbr: "BL", formal: ["ボーイズラブ"], type: 'otaku', level: 1 },
+        { abbr: "垢", formal: ["アカウント"], type: 'otaku', level: 1 },
+        { abbr: "推し", formal: ["イチオシのメンバー"], type: 'otaku', level: 1 },
+        { abbr: "DD", formal: ["誰でも大好き"], type: 'otaku', level: 2 },
+        { abbr: "同担", formal: ["同じ担当"], type: 'otaku', level: 2 },
+        { abbr: "リアタイ", formal: ["リアルタイム"], type: 'otaku', level: 2 },
+        { abbr: "スパチャ", formal: ["スーパーチャット"], type: 'otaku', level: 2 },
+        { abbr: "ROM専", formal: ["Read Only Member"], type: 'otaku', level: 3 },
+        { abbr: "FF外", formal: ["フォロー・フォロワー外"], type: 'otaku', level: 3 },
+        // GAL
+        { abbr: "ナウい", formal: ["現代的"], type: 'gal', era: 'showa' },
+        { abbr: "マブダチ", formal: ["親友"], type: 'gal', era: 'showa' },
+        { abbr: "ドロン", formal: ["消える"], type: 'gal', era: 'showa' },
+        { abbr: "チョベリバ", formal: ["超ベリーバッド"], type: 'gal', era: 'heisei' },
+        { abbr: "チョベリグ", formal: ["超ベリーグッド"], type: 'gal', era: 'heisei' },
+        { abbr: "MK5", formal: ["マジでキレる5秒前"], type: 'gal', era: 'heisei' },
+        { abbr: "KP", formal: ["乾杯"], type: 'gal', era: 'reiwa' },
+        { abbr: "り", formal: ["了解"], type: 'gal', era: 'reiwa' },
+        { abbr: "フロリダ", formal: ["風呂入るから離脱"], type: 'gal', era: 'reiwa' }
+    ];
+
+    let currentPlayMode='choice', currentType='std', activeQuestionList=[], currentQuestionIndex=0, score=0;
+
+    const menuScreen=document.getElementById('menu-screen'), gameScreen=document.getElementById('game-screen'), endScreen=document.getElementById('end-screen');
+    const loadingOverlay=document.getElementById('loading-overlay');
+
+    function setPlayMode(mode, btn) {
+        currentPlayMode=mode; document.querySelectorAll('.play-mode-btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected');
+    }
+    function toggleGalMenu() {
+        const m=document.getElementById('gal-era-select');
+        if(m.style.display==='none'){ m.style.display='block'; setTimeout(()=>m.scrollIntoView({behavior:"smooth",block:"nearest"}),50); }
+        else m.style.display='none';
+    }
+    function shuffleArray(arr) { for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];} return arr; }
+
+    // ★サーバー経由でAIを呼ぶ
     async function startAIGame() {
-        type='ai'; document.body.className='ai-mode';
-        document.getElementById('loading').style.display='flex';
-        showScreen('game-screen');
+        initAudio();
+        loadingOverlay.style.display="flex";
+        currentType='ai'; document.body.className='ai-mode';
         
         try {
-            // ここで api/quiz.js を呼び出す
-            const res = await fetch('/api/quiz'); 
+            const res = await fetch('/api/quiz');
             if(!res.ok) throw new Error("Server Error");
-            questions = await res.json();
+            const data = await res.json();
             
-            qIdx=0; score=0;
-            document.getElementById('loading').style.display='none';
-            showQ();
+            data.forEach(q => q.type = 'ai');
+            activeQuestionList = data;
+            loadingOverlay.style.display="none";
+            startGameCommon();
         } catch(e) {
-            alert("AI生成エラー: Vercelの環境変数が設定されていないか、AIが混み合っています。");
-            location.reload();
+            loadingOverlay.style.display="none";
+            alert("エラー：AIの呼び出しに失敗しました。Vercelの設定を確認してください。");
         }
     }
 
-    function startLocalGame(t) {
-        type=t; document.body.className = t+'-mode';
-        questions = localData.filter(d=>d.type===t);
-        if(questions.length===0) questions=localData; // fallback
-        // シャッフル
-        questions.sort(()=>Math.random()-0.5);
-        qIdx=0; score=0;
-        showScreen('game-screen');
-        showQ();
+    function startSpecialGame(type) {
+        initAudio(); currentType=type; document.body.className = type+'-mode';
+        const target = masterQuizData.filter(q=>q.type===type);
+        activeQuestionList = shuffleArray(target).slice(0,10);
+        if(activeQuestionList.length===0) activeQuestionList=masterQuizData.slice(0,5);
+        startGameCommon();
+    }
+    function startGalGame(era) {
+        initAudio(); currentType='gal'; document.body.className='gal-mode';
+        const target = masterQuizData.filter(q=>q.type==='gal'&&q.era===era);
+        activeQuestionList = shuffleArray(target).slice(0,10);
+        startGameCommon();
     }
 
-    function showScreen(id) {
-        document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
+    function startGameCommon() {
+        currentQuestionIndex=0; score=0;
+        menuScreen.classList.remove('active'); endScreen.classList.remove('active'); gameScreen.classList.add('active');
+        document.getElementById('choice-area').style.display=(currentPlayMode==='choice')?'block':'none';
+        document.getElementById('solo-area').style.display=(currentPlayMode==='solo')?'block':'none';
+        document.getElementById('party-area').style.display=(currentPlayMode==='party')?'block':'none';
+        showQuestion();
     }
 
-    function showQ() {
-        if(qIdx >= questions.length) return showEnd();
-        const q = questions[qIdx];
-        document.getElementById('q-text').textContent = q.abbr;
-        document.getElementById('result-box').style.display='none';
+    function showQuestion() {
+        const q=activeQuestionList[currentQuestionIndex];
+        document.getElementById('question-text').textContent = q.abbr;
         
-        // モード別表示
-        const cArea = document.getElementById('choice-area');
-        const sArea = document.getElementById('solo-area');
-        cArea.style.display='none'; sArea.style.display='none';
+        const badge=document.getElementById('info-badge');
+        badge.textContent = (currentType==='ai')?"AI生成": (q.level?"LEVEL "+q.level : (q.era==='showa'?"昭和":q.era==='heisei'?"平成":"令和"));
+        badge.style.background = (currentType==='ai')?"#8e44ad": (currentType==='police')?"#f1c40f": (currentType==='gal')?"#ff69b4": (currentType==='biz')?"#003366": (currentType==='otaku')?"#9b59b6": "#27ae60";
+        
+        document.getElementById('progress-fill').style.width = `${(currentQuestionIndex/activeQuestionList.length)*100}%`;
+        document.getElementById('result-area').style.display="none";
+        document.getElementById('party-answer-box').style.display="none";
+        document.getElementById('party-reveal-btn').style.display="inline-block";
 
-        if(mode === 'choice') {
-            cArea.style.display='block';
-            cArea.innerHTML = '';
-            // ダミー選択肢作成
-            let dummies = localData.filter(d=>d.formal[0]!==q.formal[0]).sort(()=>Math.random()-0.5).slice(0,3).map(d=>d.formal[0]);
-            let choices = [q.formal[0], ...dummies].sort(()=>Math.random()-0.5);
-            choices.forEach(c => {
-                let btn = document.createElement('button');
-                btn.className = 'choice-btn';
-                btn.textContent = c;
-                btn.onclick = () => check(c, q.formal[0], btn);
-                cArea.appendChild(btn);
-            });
-        } else if(mode === 'solo') {
-            sArea.style.display='block';
-            document.getElementById('input-ans').value='';
-        } else {
-            // Party mode
-            cArea.style.display='block';
-            cArea.innerHTML = `<button class="action-btn" onclick="showRes(true, '${q.formal[0]}')">正解を見る</button>`;
+        if(currentPlayMode==='choice') setupChoice(q);
+        else if(currentPlayMode==='solo') setupSolo();
+        window.scrollTo(0,0);
+    }
+
+    function setupChoice(q) {
+        const con=document.getElementById('choices-container'); con.innerHTML='';
+        const correct=q.formal[0];
+        let pool=masterQuizData.filter(d=>d.formal[0]!==correct);
+        if(pool.length<3) pool=masterQuizData; 
+        const dummies=shuffleArray(pool).slice(0,3).map(d=>d.formal[0]);
+        shuffleArray([correct, ...dummies]).forEach(c=>{
+            const btn=document.createElement('button'); btn.className='choice-btn'; btn.textContent=c;
+            btn.onclick=()=>checkChoice(c,btn,correct); con.appendChild(btn);
+        });
+    }
+
+    function checkChoice(sel, btn, cor) {
+        document.querySelectorAll('.choice-btn').forEach(b=>{ b.disabled=true; if(b.textContent===cor) b.classList.add('correct-choice'); });
+        const isCor=(sel===cor); if(isCor) score++; else btn.classList.add('wrong-choice');
+        showResult(isCor, cor);
+    }
+
+    function setupSolo() {
+        const inp=document.getElementById('answer-input'); inp.value=""; inp.disabled=false; inp.focus();
+        document.getElementById('solo-submit-btn').style.display="inline-block";
+    }
+    function checkSoloAnswer() {
+        const inp=document.getElementById('answer-input'); const u=inp.value.replace(/[\s　・]/g,"").toLowerCase();
+        const cors=activeQuestionList[currentQuestionIndex].formal;
+        const isCor=cors.some(c=>c.replace(/[\s　・]/g,"").toLowerCase()===u);
+        inp.disabled=true; document.getElementById('solo-submit-btn').style.display="none";
+        if(isCor) score++;
+        showResult(isCor, cors[0]);
+    }
+
+    function revealPartyAnswer() {
+        const q=activeQuestionList[currentQuestionIndex];
+        document.getElementById('party-correct-text').textContent=q.formal[0];
+        document.getElementById('party-alt-text').textContent=(q.formal.length>1)?q.formal.slice(1).join(', '):"-";
+        document.getElementById('party-reveal-btn').style.display="none";
+        document.getElementById('party-answer-box').style.display="block";
+        playSound('correct');
+    }
+
+    function showResult(isCor, ans) {
+        const area=document.getElementById('result-area'), msg=document.getElementById('result-msg'), txt=document.getElementById('correct-text');
+        area.style.display="block"; txt.textContent=ans;
+        if(isCor) { playSound('correct'); msg.className="correct"; msg.textContent="正解！⭕️"; }
+        else { playSound('wrong'); msg.className="incorrect"; msg.textContent="残念...❌"; }
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if(currentQuestionIndex<activeQuestionList.length) showQuestion();
+        else {
+            gameScreen.classList.remove('active'); endScreen.classList.add('active');
+            document.getElementById('ai-reload-btn').style.display=(currentType==='ai')?'inline-block':'none';
+            if(currentPlayMode!=='party') {
+                document.getElementById('scored-end-area').style.display='block';
+                document.getElementById('final-score').textContent=score;
+                document.getElementById('total-count').textContent=activeQuestionList.length;
+            } else {
+                document.getElementById('scored-end-area').style.display='none';
+            }
         }
     }
-
-    function check(userAns, correctAns, btn) {
-        const isCorrect = (userAns === correctAns);
-        if(btn) btn.className = isCorrect ? 'choice-btn correct-choice' : 'choice-btn wrong-choice';
-        showRes(isCorrect, correctAns);
-    }
-
-    function checkInput() {
-        const user = document.getElementById('input-ans').value;
-        const correct = questions[qIdx].formal[0];
-        showRes(questions[qIdx].formal.includes(user), correct);
-    }
-
-    function showRes(isCorrect, ansText) {
-        if(isCorrect) score++;
-        const box = document.getElementById('result-box');
-        box.style.display='block';
-        document.getElementById('res-msg').textContent = isCorrect ? "正解！⭕️" : "残念...❌";
-        document.getElementById('res-msg').style.color = isCorrect ? "#27ae60" : "#e74c3c";
-        document.getElementById('res-ans').textContent = ansText;
-    }
-
-    function nextQ() {
-        qIdx++; showQ();
-    }
-
-    function showEnd() {
-        showScreen('end-screen');
-        document.getElementById('score-disp').textContent = `${score} / ${questions.length}`;
-        document.getElementById('retry-ai').style.display = (type==='ai')?'block':'none';
-    }
+    
+    document.addEventListener("keypress", (e)=>{
+        if(e.key==="Enter" && currentPlayMode==='solo') {
+            const btn=document.getElementById('solo-submit-btn');
+            if(btn.style.display!=='none') checkSoloAnswer();
+            else if(document.getElementById('result-area').style.display!=='none') nextQuestion();
+        }
+    });
 </script>
 </body>
 </html>
