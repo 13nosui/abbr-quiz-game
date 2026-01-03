@@ -25,8 +25,7 @@
             --design-primary: #009688; --design-bg: #e0f2f1;
             /* 金融ジャンル追加 */
             --finance-primary: #d4af37; --finance-bg: #fff9e6;
-        
-            --music-primary: #9b59b6; --music-bg: #f3e5f5;}
+        }
         * { box-sizing: border-box; }
         body {
             font-family: "Helvetica Neue", Arial, sans-serif;
@@ -39,7 +38,6 @@
         }
 
         /* モードスタイル */
-        body.music-mode { background-color: var(--music-bg); --primary-color: var(--music-primary); }
         body.gal-mode { background-color: var(--gal-bg); --primary-color: var(--gal-primary); }
         body.police-mode { background-color: var(--police-bg); --primary-color: var(--police-primary); }
         body.biz-mode { background-color: var(--biz-bg); --primary-color: var(--biz-primary); }
@@ -152,6 +150,12 @@
 
         .progress-bar { width: 100%; background: #eee; height: 6px; border-radius: 3px; margin-bottom: 1.5rem; overflow: hidden; }
         .progress-fill { height: 100%; background: #27ae60; width: 0%; transition: width 0.3s; }
+        
+        .timer-bar { width: 100%; background: #f0f0f0; height: 8px; border-radius: 4px; margin-bottom: 1rem; overflow: hidden; position: relative; }
+        .timer-fill { height: 100%; background: #e74c3c; width: 100%; transition: width 0.1s linear; border-radius: 4px; }
+        .timer-fill.warning { background: #f39c12; }
+        .timer-fill.danger { background: #e74c3c; animation: pulse 0.5s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
         .back-link { display: inline-block; margin-top: 25px; color: #999; text-decoration: underline; cursor: pointer; padding: 10px; }
         
         /* 作成画面用 */
@@ -169,7 +173,6 @@
             h1 { font-size: 1.3rem; }
             .abbr-text { font-size: 1.6rem; }
         }
-            .btn-music { background-color: #9b59b6; }
     </style>
 </head>
 <body>
@@ -243,9 +246,6 @@
                 <div class="menu-btn-content"><span>💰 金融・投資</span><span class="menu-desc">ユーザー投稿</span></div><span>▶</span>
             </button>
             
-            <button class="menu-btn btn-music" onclick="startSpecialGame('music')">
-                <div class="menu-btn-content"><span>🆕 音楽・DTM</span><span class="menu-desc">ユーザー投稿</span></div><span>▶</span>
-            </button>
             <div id="gal-era-select" style="display:none; margin-top:5px;">
                 <button class="era-btn" onclick="startGalGame('showa')">📼 昭和ギャル</button>
                 <button class="era-btn" onclick="startGalGame('heisei')">🌺 平成ギャル</button>
@@ -304,6 +304,7 @@
 
     <div id="game-screen" class="screen">
         <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+        <div class="timer-bar" id="timer-bar" style="display:none;"><div id="timer-fill" class="timer-fill"></div></div>
         
         <div class="question-box">
             <div id="info-badge" class="badge" style="background:#ccc;">CATEGORY</div>
@@ -536,21 +537,10 @@
         { abbr: "ROE", formal: ["Return On Equity"], type: 'finance', level: 1 },
         { abbr: "TOPIX", formal: ["Tokyo Stock Price Index"], type: 'finance', level: 1 },
         { abbr: "GAFA", formal: ["Google Apple Facebook Amazon"], type: 'finance', level: 1 }
-    ,
-        // 音楽・DTM (User Submitted)
-        { abbr: "BPM", formal: ["Beats Per Minute"], type: 'music', level: 1 },
-        { abbr: "DAW", formal: ["Digital Audio Workstation"], type: 'music', level: 1 },
-        { abbr: "EQ", formal: ["Equalizer"], type: 'music', level: 1 },
-        { abbr: "BGM", formal: ["Background Music"], type: 'music', level: 1 },
-        { abbr: "MV", formal: ["Music Video"], type: 'music', level: 1 },
-        { abbr: "CD", formal: ["Compact Disc"], type: 'music', level: 1 },
-        { abbr: "MC", formal: ["Master of Ceremonies"], type: 'music', level: 1 },
-        { abbr: "PA", formal: ["Public Address"], type: 'music', level: 1 },
-        { abbr: "SE", formal: ["Sound Effect"], type: 'music', level: 1 },
-        { abbr: "J-POP", formal: ["Japanese Popular Music"], type: 'music', level: 1 },
     ];
 
     let currentPlayMode='choice', currentType='std', activeQuestionList=[], currentQuestionIndex=0, score=0;
+    let timerInterval=null, timerRemaining=10;
 
     const menuScreen=document.getElementById('menu-screen'), gameScreen=document.getElementById('game-screen'), endScreen=document.getElementById('end-screen'), createScreen=document.getElementById('create-screen');
     
@@ -580,6 +570,7 @@
 
     function startGameCommon() {
         currentQuestionIndex=0; score=0;
+        stopTimer(); // タイマーをリセット
         menuScreen.classList.remove('active'); endScreen.classList.remove('active'); createScreen.classList.remove('active');
         gameScreen.classList.add('active');
         document.getElementById('choice-area').style.display=(currentPlayMode==='choice')?'block':'none';
@@ -609,7 +600,6 @@
             (currentType==='media')?"#e91e63":
             (currentType==='design')?"#009688": 
             (currentType==='finance')?"#d4af37":
-            (currentType==='music')?"#9b59b6": 
             "#27ae60";
         
         document.getElementById('progress-fill').style.width = `${(currentQuestionIndex/activeQuestionList.length)*100}%`;
@@ -619,7 +609,83 @@
 
         if(currentPlayMode==='choice') setupChoice(q);
         else if(currentPlayMode==='solo') setupSolo();
+        
+        // タイマー開始（Partyモード以外）
+        if(currentPlayMode!=='party') {
+            startTimer();
+        } else {
+            stopTimer();
+            document.getElementById('timer-bar').style.display = 'none';
+        }
+        
         window.scrollTo(0,0);
+    }
+    
+    function startTimer() {
+        stopTimer(); // 既存のタイマーをクリア
+        timerRemaining = 10;
+        const timerBar = document.getElementById('timer-bar');
+        const timerFill = document.getElementById('timer-fill');
+        timerBar.style.display = 'block';
+        timerFill.style.width = '100%';
+        timerFill.className = 'timer-fill';
+        
+        timerInterval = setInterval(() => {
+            timerRemaining -= 0.1;
+            const percentage = (timerRemaining / 10) * 100;
+            timerFill.style.width = percentage + '%';
+            
+            // 警告色の変更
+            if (percentage <= 30) {
+                timerFill.className = 'timer-fill danger';
+            } else if (percentage <= 50) {
+                timerFill.className = 'timer-fill warning';
+            }
+            
+            if (timerRemaining <= 0) {
+                stopTimer();
+                // タイムアップ処理
+                handleTimeUp();
+            }
+        }, 100);
+    }
+    
+    function stopTimer() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+    }
+    
+    function handleTimeUp() {
+        stopTimer();
+        const q = activeQuestionList[currentQuestionIndex];
+        const correct = q.formal[0];
+        
+        // 選択肢を無効化
+        document.querySelectorAll('.choice-btn').forEach(b => {
+            b.disabled = true;
+            if (b.textContent === correct) {
+                b.classList.add('correct-choice');
+            }
+        });
+        
+        // 入力モードの場合は入力を無効化
+        const inp = document.getElementById('answer-input');
+        if (inp) {
+            inp.disabled = true;
+            document.getElementById('solo-submit-btn').style.display = 'none';
+        }
+        
+        // 時間切れとして不正解扱い
+        const area = document.getElementById('result-area');
+        const msg = document.getElementById('result-msg');
+        const txt = document.getElementById('correct-text');
+        area.style.display = 'block';
+        txt.textContent = correct;
+        playSound('wrong');
+        msg.className = 'incorrect';
+        msg.textContent = '時間切れ...⏰';
     }
 
     function setupChoice(q) {
@@ -639,6 +705,7 @@
     }
 
     function checkChoice(sel, btn, cor) {
+        stopTimer(); // タイマー停止
         document.querySelectorAll('.choice-btn').forEach(b=>{ b.disabled=true; if(b.textContent===cor) b.classList.add('correct-choice'); });
         const isCor=(sel===cor); if(isCor) score++; else btn.classList.add('wrong-choice');
         showResult(isCor, cor);
@@ -649,6 +716,7 @@
         document.getElementById('solo-submit-btn').style.display="inline-block";
     }
     function checkSoloAnswer() {
+        stopTimer(); // タイマー停止
         const inp=document.getElementById('answer-input'); const u=inp.value.replace(/[\s　・]/g,"").toLowerCase();
         const cors=activeQuestionList[currentQuestionIndex].formal;
         const isCor=cors.some(c=>c.replace(/[\s　・]/g,"").toLowerCase()===u);
@@ -667,6 +735,7 @@
     }
 
     function showResult(isCor, ans) {
+        stopTimer(); // タイマー停止
         const area=document.getElementById('result-area'), msg=document.getElementById('result-msg'), txt=document.getElementById('correct-text');
         area.style.display="block"; txt.textContent=ans;
         if(isCor) { playSound('correct'); msg.className="correct"; msg.textContent="正解！⭕️"; }
@@ -674,9 +743,11 @@
     }
 
     function nextQuestion() {
+        stopTimer(); // タイマー停止・リセット
         currentQuestionIndex++;
         if(currentQuestionIndex<activeQuestionList.length) showQuestion();
         else {
+            stopTimer(); // 最終確認
             gameScreen.classList.remove('active'); endScreen.classList.add('active');
             if(currentPlayMode!=='party') {
                 document.getElementById('scored-end-area').style.display='block';
