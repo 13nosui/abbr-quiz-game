@@ -2,15 +2,17 @@ export default async function handler(req, res) {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return res.status(500).json({ error: "No API Key configured" });
 
+    // Vercelの10秒制限対策で3問に設定
     const prompt = `
     あなたはクイズ作成AIです。
-    「略語の正式名称クイズ」または「業界用語の意味クイズ」を新しく5問作成し、JSON配列形式で出力してください。
+    「略語の正式名称クイズ」または「業界用語の意味クイズ」を新しく3問作成し、JSON配列形式で出力してください。
     【条件】
     1. 一般的な略語、ビジネス用語、IT用語、若者言葉、業界隠語などからランダムに選ぶこと。
-    2. 回答は必ず有効なJSON配列のみを出力すること。
+    2. 回答は必ず有効なJSON配列のみを出力すること。Markdown記号や解説文は含めないでください。
     3. フォーマット: [{"abbr": "略語", "formal": ["正解1"], "level": 1}]
     `;
 
+    // 応答が速いflashを優先
     const models = ['gemini-1.5-flash', 'gemini-pro', 'gemini-1.0-pro-latest'];
 
     for (const model of models) {
@@ -21,17 +23,31 @@ export default async function handler(req, res) {
                 body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
             });
 
-            if (!response.ok) continue;
+            if (!response.ok) {
+                console.error(`Gemini API Error (${model}):`, await response.text());
+                continue;
+            }
 
             const data = await response.json();
-            let text = data.candidates[0].content.parts[0].text;
-            text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+            // 安全にデータを取り出す
+            const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+            
+            console.log(`Raw Gemini Response (${model}):`, rawText);
 
-            return res.status(200).json(JSON.parse(text));
+            // 正規表現でJSON配列部分（[...]）のみを抽出
+            const jsonMatch = rawText.match(/\[[\s\S]*\]/);
+            if (!jsonMatch) {
+                console.error("JSON array not found in response");
+                continue;
+            }
+
+            const quizData = JSON.parse(jsonMatch[0]);
+            return res.status(200).json(quizData);
+
         } catch (e) {
-            console.error(e);
+            console.error(`Attempt failed with ${model}:`, e);
             continue;
         }
     }
-    return res.status(500).json({ error: "AI generation failed" });
+    return res.status(500).json({ error: "AI generation failed. Check Vercel Logs." });
 }
