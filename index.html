@@ -357,7 +357,21 @@
         
         try {
             const res = await fetch('/api/quiz');
-            if(!res.ok) throw new Error("Server Error");
+            if(!res.ok) {
+                let errorMessage = "詳細不明";
+                try {
+                    const errorData = await res.json();
+                    errorMessage = errorData.error || errorData.details || "詳細不明";
+                } catch(parseError) {
+                    try {
+                        const errorText = await res.text();
+                        errorMessage = errorText || "詳細不明";
+                    } catch(textError) {
+                        errorMessage = `HTTP ${res.status}: ${res.statusText}`;
+                    }
+                }
+                throw new Error(errorMessage);
+            }
             const data = await res.json();
             
             data.forEach(q => q.type = 'ai');
@@ -366,7 +380,7 @@
             startGameCommon();
         } catch(e) {
             loadingOverlay.style.display="none";
-            alert("エラー：AIの呼び出しに失敗しました。Vercelの設定を確認してください。");
+            alert("エラーが発生しました: " + (e.message || "詳細不明"));
         }
     }
 
