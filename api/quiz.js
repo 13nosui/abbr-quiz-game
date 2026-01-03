@@ -12,11 +12,13 @@ export default async function handler(req, res) {
     3. フォーマット: [{"abbr": "略語", "formal": ["正解1"], "level": 1}]
     `;
 
-    // 応答が速いflashを優先
-    const models = ['gemini-1.5-flash', 'gemini-pro', 'gemini-1.0-pro-latest'];
+    // 【修正点】確実に動作する最新モデルのみに絞る
+    // gemini-pro (旧モデル) は削除しました
+    const models = ['gemini-1.5-flash', 'gemini-1.5-pro'];
 
     for (const model of models) {
         try {
+            // v1betaエンドポイントを使用
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -24,17 +26,16 @@ export default async function handler(req, res) {
             });
 
             if (!response.ok) {
-                console.error(`Gemini API Error (${model}):`, await response.text());
+                const errorText = await response.text();
+                console.error(`Gemini API Error (${model}):`, errorText);
                 continue;
             }
 
             const data = await response.json();
-            // 安全にデータを取り出す
             const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
             
             console.log(`Raw Gemini Response (${model}):`, rawText);
 
-            // 正規表現でJSON配列部分（[...]）のみを抽出
             const jsonMatch = rawText.match(/\[[\s\S]*\]/);
             if (!jsonMatch) {
                 console.error("JSON array not found in response");
@@ -49,5 +50,9 @@ export default async function handler(req, res) {
             continue;
         }
     }
-    return res.status(500).json({ error: "AI generation failed. Check Vercel Logs." });
+    
+    // 全モデル失敗した場合
+    return res.status(500).json({ 
+        error: "AI generation failed. Please check Vercel Logs for API errors." 
+    });
 }
