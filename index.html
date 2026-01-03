@@ -521,8 +521,10 @@
     function setupChoice(q) {
         const con=document.getElementById('choices-container'); con.innerHTML='';
         const correct=q.formal[0];
-        let pool=masterQuizData.filter(d=>d.formal[0]!==correct);
-        if(pool.length<3) pool=masterQuizData; 
+        // まず同じジャンル（type）から正解以外をフィルタリング
+        let pool=masterQuizData.filter(d=>d.type===q.type && d.formal[0]!==correct);
+        // もし同じジャンルで3個未満の場合は、全データから正解以外をフィルタリング（フォールバック）
+        if(pool.length<3) pool=masterQuizData.filter(d=>d.formal[0]!==correct);
         const dummies=shuffleArray(pool).slice(0,3).map(d=>d.formal[0]);
         shuffleArray([correct, ...dummies]).forEach(c=>{
             const btn=document.createElement('button'); btn.className='choice-btn'; btn.textContent=c;
