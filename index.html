@@ -187,10 +187,17 @@
             margin: 15px 0;
         }
         .btn-share {
-            background-color: #000; /* Xのブランドカラー */
+            background-color: #000;
             color: #fff;
-            margin-top: 15px;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
+            /* ★修正: 上下15px、左右auto（これで中央に来ます） */
+            margin: 15px auto; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 10px;
+            /* 念のため幅指定も継承 */
+            width: 100%;
+            max-width: 300px;
         }
         .btn-share:hover { opacity: 0.8; }
         @keyframes levelUp {
