@@ -13,6 +13,9 @@
             --police-primary: #2c3e50; --police-bg: #e8ecef;
             --biz-primary: #0047AB; --biz-bg: #f5f7fa;
             --otaku-primary: #9b59b6; --otaku-bg: #f3e5f5;
+            --medical-primary: #16a085; --medical-bg: #e8f8f5;
+            --netslang-primary: #e67e22; --netslang-bg: #fdf2e9;
+            --sumo-primary: #8d6e63; --sumo-bg: #efebe9;
         }
         * { box-sizing: border-box; }
         body {
@@ -30,6 +33,9 @@
         body.police-mode { background-color: var(--police-bg); --primary-color: var(--police-primary); }
         body.biz-mode { background-color: var(--biz-bg); --primary-color: var(--biz-primary); }
         body.otaku-mode { background-color: var(--otaku-bg); --primary-color: var(--otaku-primary); }
+        body.medical-mode { background-color: var(--medical-bg); --primary-color: var(--medical-primary); }
+        body.netslang-mode { background-color: var(--netslang-bg); --primary-color: var(--netslang-primary); }
+        body.sumo-mode { background-color: var(--sumo-bg); --primary-color: var(--sumo-primary); }
 
         .container {
             background-color: white; padding: 2rem; border-radius: 16px;
@@ -59,6 +65,9 @@
         .btn-biz { background-color: #0047AB; }
         .btn-otaku { background-color: #9b59b6; }
         .btn-gal { background-color: #ff69b4; }
+        .btn-medical { background-color: #16a085; }
+        .btn-netslang { background-color: #e67e22; }
+        .btn-sumo { background-color: #8d6e63; border-left: 5px solid #000; }
 
         .play-mode-selector { display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; }
         .play-mode-btn {
@@ -161,6 +170,15 @@
             </button>
             <button class="menu-btn btn-gal" onclick="toggleGalMenu()">
                 <div class="menu-btn-content"><span>💖 ギャル語</span><span class="menu-desc">昭和・平成・令和</span></div><span>▼</span>
+            </button>
+            <button class="menu-btn btn-medical" onclick="startSpecialGame('medical')">
+                <div class="menu-btn-content"><span>🏥 医療・病院</span><span class="menu-desc">カルテ、オペ...</span></div><span>▶</span>
+            </button>
+            <button class="menu-btn btn-netslang" onclick="startSpecialGame('netslang')">
+                <div class="menu-btn-content"><span>💻 ネットスラング</span><span class="menu-desc">w、鯖落ち...</span></div><span>▶</span>
+            </button>
+            <button class="menu-btn btn-sumo" onclick="startSpecialGame('sumo')">
+                <div class="menu-btn-content"><span>✋ 相撲・角界</span><span class="menu-desc">金星、タニマチ...</span></div><span>▶</span>
             </button>
             
             <div id="gal-era-select" style="display:none; margin-top:5px;">
@@ -298,7 +316,48 @@
         { abbr: "MK5", formal: ["マジでキレる5秒前"], type: 'gal', era: 'heisei' },
         { abbr: "KP", formal: ["乾杯"], type: 'gal', era: 'reiwa' },
         { abbr: "り", formal: ["了解"], type: 'gal', era: 'reiwa' },
-        { abbr: "フロリダ", formal: ["風呂入るから離脱"], type: 'gal', era: 'reiwa' }
+        { abbr: "フロリダ", formal: ["風呂入るから離脱"], type: 'gal', era: 'reiwa' },
+        // MEDICAL (医療)
+        { abbr: "インフル", formal: ["インフルエンザ"], type: 'medical', level: 1 },
+        { abbr: "リハビリ", formal: ["リハビリテーション"], type: 'medical', level: 1 },
+        { abbr: "カルテ", formal: ["診療録"], type: 'medical', level: 1 },
+        { abbr: "オペ", formal: ["手術", "オペレーション"], type: 'medical', level: 1 },
+        { abbr: "ICU", formal: ["集中治療室"], type: 'medical', level: 2 },
+        { abbr: "AED", formal: ["自動体外式除細動器"], type: 'medical', level: 2 },
+        { abbr: "MRI", formal: ["磁気共鳴画像法"], type: 'medical', level: 2 },
+        { abbr: "QOL", formal: ["生活の質", "クオリティ・オブ・ライフ"], type: 'medical', level: 2 },
+        { abbr: "アナムネ", formal: ["既往歴", "問診"], type: 'medical', level: 3 },
+        { abbr: "バイタル", formal: ["生命兆候", "バイタルサイン"], type: 'medical', level: 3 },
+        { abbr: "エビデンス", formal: ["科学的根拠", "証拠"], type: 'medical', level: 3 },
+        { abbr: "ステる", formal: ["死亡する"], type: 'medical', level: 3 },
+
+        // NET SLANG (ネットスラング)
+        { abbr: "SNS", formal: ["ソーシャル・ネットワーキング・サービス"], type: 'netslang', level: 1 },
+        { abbr: "アカ", formal: ["アカウント"], type: 'netslang', level: 1 },
+        { abbr: "DM", formal: ["ダイレクトメッセージ"], type: 'netslang', level: 1 },
+        { abbr: "w", formal: ["笑い", "笑"], type: 'netslang', level: 1 },
+        { abbr: "kwsk", formal: ["詳しく"], type: 'netslang', level: 2 },
+        { abbr: "wktk", formal: ["ワクワクテカテカ", "期待している"], type: 'netslang', level: 2 },
+        { abbr: "鯖", formal: ["サーバー"], type: 'netslang', level: 2 },
+        { abbr: "BAN", formal: ["アカウント停止", "禁止"], type: 'netslang', level: 2 },
+        { abbr: "ggrks", formal: ["ググれカス", "自分で検索しろ"], type: 'netslang', level: 3 },
+        { abbr: "うp", formal: ["アップロード"], type: 'netslang', level: 3 },
+        { abbr: "乙", formal: ["お疲れ様"], type: 'netslang', level: 3 },
+        { abbr: "ソース", formal: ["情報源"], type: 'netslang', level: 3 },
+
+        // SUMO (相撲業界)
+        { abbr: "場所", formal: ["本場所"], type: 'sumo', level: 1 },
+        { abbr: "関取", formal: ["十両以上の力士"], type: 'sumo', level: 1 },
+        { abbr: "親方", formal: ["年寄", "師匠"], type: 'sumo', level: 1 },
+        { abbr: "横綱", formal: ["最高位の力士"], type: 'sumo', level: 1 },
+        { abbr: "角界", formal: ["相撲界"], type: 'sumo', level: 2 },
+        { abbr: "金星", formal: ["平幕が横綱に勝つこと"], type: 'sumo', level: 2 },
+        { abbr: "ちゃんこ", formal: ["力士の食事"], type: 'sumo', level: 2 },
+        { abbr: "タニマチ", formal: ["ひいきにしてくれる客", "スポンサー"], type: 'sumo', level: 2 },
+        { abbr: "かわいがり", formal: ["厳しい稽古"], type: 'sumo', level: 3 },
+        { abbr: "砂かぶり", formal: ["溜席", "土俵下の席"], type: 'sumo', level: 3 },
+        { abbr: "弓取り", formal: ["弓取り式"], type: 'sumo', level: 3 },
+        { abbr: "マゲ", formal: ["大銀杏", "丁髷"], type: 'sumo', level: 3 }
     ];
 
     let currentPlayMode='choice', currentType='std', activeQuestionList=[], currentQuestionIndex=0, score=0;
@@ -344,7 +403,15 @@
         
         const badge=document.getElementById('info-badge');
         badge.textContent = (q.level?"LEVEL "+q.level : (q.era==='showa'?"昭和":q.era==='heisei'?"平成":"令和"));
-        badge.style.background = (currentType==='police')?"#f1c40f": (currentType==='gal')?"#ff69b4": (currentType==='biz')?"#003366": (currentType==='otaku')?"#9b59b6": "#27ae60";
+        badge.style.background = 
+            (currentType==='police')?"#f1c40f": 
+            (currentType==='gal')?"#ff69b4": 
+            (currentType==='biz')?"#003366": 
+            (currentType==='otaku')?"#9b59b6": 
+            (currentType==='medical')?"#16a085": 
+            (currentType==='netslang')?"#e67e22": 
+            (currentType==='sumo')?"#8d6e63": 
+            "#27ae60";
         
         document.getElementById('progress-fill').style.width = `${(currentQuestionIndex/activeQuestionList.length)*100}%`;
         document.getElementById('result-area').style.display="none";
