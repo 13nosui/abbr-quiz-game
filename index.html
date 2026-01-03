@@ -22,7 +22,8 @@
             --game-primary: #6c5ce7; --game-bg: #ede7f6;
             --media-primary: #e91e63; --media-bg: #fce4ec;
             --design-primary: #009688; --design-bg: #e0f2f1;
-        }
+        
+            --finance-primary: #d4af37; --finance-bg: #fff9e6;}
         * { box-sizing: border-box; }
         body {
             font-family: "Helvetica Neue", Arial, sans-serif;
@@ -35,6 +36,7 @@
         }
 
         /* モードスタイル */
+        body.finance-mode { background-color: var(--finance-bg); --primary-color: var(--finance-primary); }
         body.gal-mode { background-color: var(--gal-bg); --primary-color: var(--gal-primary); }
         body.police-mode { background-color: var(--police-bg); --primary-color: var(--police-primary); }
         body.biz-mode { background-color: var(--biz-bg); --primary-color: var(--biz-primary); }
@@ -162,6 +164,7 @@
             h1 { font-size: 1.3rem; }
             .abbr-text { font-size: 1.6rem; }
         }
+            .btn-finance { background-color: #d4af37; }
     </style>
 </head>
 <body>
@@ -232,6 +235,9 @@
                 <div class="menu-btn-content"><span>🎨 デザイン・制作</span><span class="menu-desc">UI/UX、CMYK...</span></div><span>▶</span>
             </button>
             
+            <button class="menu-btn btn-finance" onclick="startSpecialGame('finance')">
+                <div class="menu-btn-content"><span>🆕 金融・投資</span><span class="menu-desc">ユーザー投稿</span></div><span>▶</span>
+            </button>
             <div id="gal-era-select" style="display:none; margin-top:5px;">
                 <button class="era-btn" onclick="startGalGame('showa')">📼 昭和ギャル</button>
                 <button class="era-btn" onclick="startGalGame('heisei')">🌺 平成ギャル</button>
@@ -510,6 +516,18 @@
         { abbr: "SVG", formal: ["Scalable Vector Graphics", "スケーラブルベクターグラフィックス"], type: 'design', level: 3 },
         { abbr: "CSS", formal: ["Cascading Style Sheets", "カスケーディングスタイルシート"], type: 'design', level: 3 },
         { abbr: "PDF", formal: ["Portable Document Format", "ポータブルドキュメントフォーマット"], type: 'design', level: 3 }
+    
+        // 金融・投資 (User Submitted)
+        { abbr: "NISA", formal: ["Nippon Individual Savings Account"], type: 'finance', level: 1 },
+        { abbr: "IPO", formal: ["Initial Public Offering"], type: 'finance', level: 1 },
+        { abbr: "FX", formal: ["Foreign Exchange"], type: 'finance', level: 1 },
+        { abbr: "GDP", formal: ["Gross Domestic Product"], type: 'finance', level: 1 },
+        { abbr: "ETF", formal: ["Exchange Traded Fund"], type: 'finance', level: 1 },
+        { abbr: "REIT", formal: ["Real Estate Investment Trust"], type: 'finance', level: 1 },
+        { abbr: "VC", formal: ["Venture Capital"], type: 'finance', level: 1 },
+        { abbr: "ROE", formal: ["Return On Equity"], type: 'finance', level: 1 },
+        { abbr: "TOPIX", formal: ["Tokyo Stock Price Index"], type: 'finance', level: 1 },
+        { abbr: "GAFA", formal: ["Google Apple Facebook Amazon"], type: 'finance', level: 1 },
     ];
 
     let currentPlayMode='choice', currentType='std', activeQuestionList=[], currentQuestionIndex=0, score=0;
@@ -570,6 +588,7 @@
             (currentType==='game')?"#6c5ce7": 
             (currentType==='media')?"#e91e63":
             (currentType==='design')?"#009688": 
+            (currentType==='finance')?"#d4af37": 
             "#27ae60";
         
         document.getElementById('progress-fill').style.width = `${(currentQuestionIndex/activeQuestionList.length)*100}%`;
