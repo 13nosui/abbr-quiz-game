@@ -16,6 +16,11 @@
             --medical-primary: #16a085; --medical-bg: #e8f8f5;
             --netslang-primary: #e67e22; --netslang-bg: #fdf2e9;
             --sumo-primary: #8d6e63; --sumo-bg: #efebe9;
+            --realestate-primary: #d35400; --realestate-bg: #fbeee6;
+            --aviation-primary: #00a8ff; --aviation-bg: #e0f7fa;
+            --school-primary: #2ecc71; --school-bg: #e8f8f5;
+            --game-primary: #6c5ce7; --game-bg: #ede7f6;
+            --media-primary: #e91e63; --media-bg: #fce4ec;
         }
         * { box-sizing: border-box; }
         body {
@@ -36,6 +41,11 @@
         body.medical-mode { background-color: var(--medical-bg); --primary-color: var(--medical-primary); }
         body.netslang-mode { background-color: var(--netslang-bg); --primary-color: var(--netslang-primary); }
         body.sumo-mode { background-color: var(--sumo-bg); --primary-color: var(--sumo-primary); }
+        body.realestate-mode { background-color: var(--realestate-bg); --primary-color: var(--realestate-primary); }
+        body.aviation-mode { background-color: var(--aviation-bg); --primary-color: var(--aviation-primary); }
+        body.school-mode { background-color: var(--school-bg); --primary-color: var(--school-primary); }
+        body.game-mode { background-color: var(--game-bg); --primary-color: var(--game-primary); }
+        body.media-mode { background-color: var(--media-bg); --primary-color: var(--media-primary); }
 
         .container {
             background-color: white; padding: 2rem; border-radius: 16px;
@@ -68,6 +78,11 @@
         .btn-medical { background-color: #16a085; }
         .btn-netslang { background-color: #e67e22; }
         .btn-sumo { background-color: #8d6e63; border-left: 5px solid #000; }
+        .btn-realestate { background-color: #d35400; }
+        .btn-aviation { background-color: #00a8ff; }
+        .btn-school { background-color: #2ecc71; }
+        .btn-game { background-color: #6c5ce7; }
+        .btn-media { background-color: #e91e63; }
 
         .play-mode-selector { display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; }
         .play-mode-btn {
@@ -179,6 +194,21 @@
             </button>
             <button class="menu-btn btn-sumo" onclick="startSpecialGame('sumo')">
                 <div class="menu-btn-content"><span>✋ 相撲・角界</span><span class="menu-desc">金星、タニマチ...</span></div><span>▶</span>
+            </button>
+            <button class="menu-btn btn-realestate" onclick="startSpecialGame('realestate')">
+                <div class="menu-btn-content"><span>🏠 不動産・建築</span><span class="menu-desc">LDK、敷礼...</span></div><span>▶</span>
+            </button>
+            <button class="menu-btn btn-aviation" onclick="startSpecialGame('aviation')">
+                <div class="menu-btn-content"><span>✈️ 航空・旅行</span><span class="menu-desc">LCC、CA...</span></div><span>▶</span>
+            </button>
+            <button class="menu-btn btn-school" onclick="startSpecialGame('school')">
+                <div class="menu-btn-content"><span>🏫 学校・教育</span><span class="menu-desc">PTA、OB...</span></div><span>▶</span>
+            </button>
+            <button class="menu-btn btn-game" onclick="startSpecialGame('game')">
+                <div class="menu-btn-content"><span>🎮 ゲーム用語</span><span class="menu-desc">RPG、FPS...</span></div><span>▶</span>
+            </button>
+            <button class="menu-btn btn-media" onclick="startSpecialGame('media')">
+                <div class="menu-btn-content"><span>📺 テレビ・メディア</span><span class="menu-desc">CM、AD...</span></div><span>▶</span>
             </button>
             
             <div id="gal-era-select" style="display:none; margin-top:5px;">
@@ -357,7 +387,38 @@
         { abbr: "かわいがり", formal: ["厳しい稽古"], type: 'sumo', level: 3 },
         { abbr: "砂かぶり", formal: ["溜席", "土俵下の席"], type: 'sumo', level: 3 },
         { abbr: "弓取り", formal: ["弓取り式"], type: 'sumo', level: 3 },
-        { abbr: "マゲ", formal: ["大銀杏", "丁髷"], type: 'sumo', level: 3 }
+        { abbr: "マゲ", formal: ["大銀杏", "丁髷"], type: 'sumo', level: 3 },
+
+        // REAL ESTATE
+{ abbr: "LDK", formal: ["リビング・ダイニング・キッチン"], type: 'realestate', level: 1 },
+{ abbr: "RC", formal: ["鉄筋コンクリート造"], type: 'realestate', level: 1 },
+{ abbr: "敷礼", formal: ["敷金・礼金"], type: 'realestate', level: 1 },
+{ abbr: "1R", formal: ["ワンルーム"], type: 'realestate', level: 2 },
+{ abbr: "UB", formal: ["ユニットバス"], type: 'realestate', level: 2 },
+// AVIATION
+{ abbr: "LCC", formal: ["ローコストキャリア", "格安航空会社"], type: 'aviation', level: 1 },
+{ abbr: "CA", formal: ["キャビンアテンダント", "客室乗務員"], type: 'aviation', level: 1 },
+{ abbr: "ETA", formal: ["到着予定時刻"], type: 'aviation', level: 2 },
+{ abbr: "GH", formal: ["グランドハンドリング", "地上職"], type: 'aviation', level: 2 },
+{ abbr: "羽田", formal: ["東京国際空港"], type: 'aviation', level: 2 },
+// SCHOOL
+{ abbr: "PTA", formal: ["父母と先生の会"], type: 'school', level: 1 },
+{ abbr: "HR", formal: ["ホームルーム"], type: 'school', level: 1 },
+{ abbr: "OB", formal: ["オールドボーイ", "卒業生"], type: 'school', level: 1 },
+{ abbr: "AO入試", formal: ["アドミッション・オフィス入試"], type: 'school', level: 2 },
+{ abbr: "TT", formal: ["チームティーチング"], type: 'school', level: 2 },
+// GAME
+{ abbr: "RPG", formal: ["ロールプレイングゲーム"], type: 'game', level: 1 },
+{ abbr: "FPS", formal: ["ファーストパーソン・シューティング"], type: 'game', level: 1 },
+{ abbr: "NPC", formal: ["ノンプレイヤーキャラクター"], type: 'game', level: 2 },
+{ abbr: "HP", formal: ["ヒットポイント"], type: 'game', level: 1 },
+{ abbr: "RTA", formal: ["リアルタイムアタック"], type: 'game', level: 2 },
+// MEDIA
+{ abbr: "CM", formal: ["コマーシャルメッセージ"], type: 'media', level: 1 },
+{ abbr: "AD", formal: ["アシスタントディレクター"], type: 'media', level: 1 },
+{ abbr: "OA", formal: ["オンエア", "放送"], type: 'media', level: 1 },
+{ abbr: "完パケ", formal: ["完全パッケージ"], type: 'media', level: 2 },
+{ abbr: "F1層", formal: ["20歳から34歳の女性"], type: 'media', level: 2 }
     ];
 
     let currentPlayMode='choice', currentType='std', activeQuestionList=[], currentQuestionIndex=0, score=0;
@@ -411,6 +472,11 @@
             (currentType==='medical')?"#16a085": 
             (currentType==='netslang')?"#e67e22": 
             (currentType==='sumo')?"#8d6e63": 
+            (currentType==='realestate')?"#d35400": 
+            (currentType==='aviation')?"#00a8ff": 
+            (currentType==='school')?"#2ecc71": 
+            (currentType==='game')?"#6c5ce7": 
+            (currentType==='media')?"#e91e63":
             "#27ae60";
         
         document.getElementById('progress-fill').style.width = `${(currentQuestionIndex/activeQuestionList.length)*100}%`;
