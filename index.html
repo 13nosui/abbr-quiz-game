@@ -9,7 +9,6 @@
         :root {
             --primary-color: #3498db; --bg-color: #f0f4f8; --text-color: #333;
             --success-color: #27ae60; --error-color: #e74c3c;
-            --ai-primary: #8e44ad; --ai-bg: #f3e5f5;
             --gal-primary: #ff69b4; --gal-bg: #fff0f5;
             --police-primary: #2c3e50; --police-bg: #e8ecef;
             --biz-primary: #0047AB; --biz-bg: #f5f7fa;
@@ -27,7 +26,6 @@
         }
 
         /* モードスタイル */
-        body.ai-mode { background-color: var(--ai-bg); --primary-color: var(--ai-primary); }
         body.gal-mode { background-color: var(--gal-bg); --primary-color: var(--gal-primary); }
         body.police-mode { background-color: var(--police-bg); --primary-color: var(--police-primary); }
         body.biz-mode { background-color: var(--biz-bg); --primary-color: var(--biz-primary); }
@@ -61,7 +59,6 @@
         .btn-biz { background-color: #0047AB; }
         .btn-otaku { background-color: #9b59b6; }
         .btn-gal { background-color: #ff69b4; }
-        .btn-ai { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); box-shadow: 0 4px 0 #5a3b7e; }
 
         .play-mode-selector { display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; }
         .play-mode-btn {
@@ -122,19 +119,6 @@
         .progress-fill { height: 100%; background: #27ae60; width: 0%; transition: width 0.3s; }
         .back-link { display: inline-block; margin-top: 25px; color: #999; text-decoration: underline; cursor: pointer; padding: 10px; }
 
-        /* ローディング */
-        .loading-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.95); display: none;
-            flex-direction: column; justify-content: center; align-items: center;
-            border-radius: 16px; z-index: 10; padding: 20px; text-align:center;
-        }
-        .spinner {
-            width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #8e44ad;
-            border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
         @media (max-width: 480px) {
             .container { padding: 1.5rem 1rem; }
             h1 { font-size: 1.3rem; }
@@ -146,7 +130,7 @@
 
 <div class="container">
     <h1 id="app-title">略語正式名称クイズ</h1>
-    <p class="subtitle">AI搭載！無限に遊べるよ</p>
+    <p class="subtitle">完全版！無限に遊べるよ</p>
 
     <div id="menu-screen" class="screen active">
         
@@ -161,15 +145,7 @@
 
         <div style="height: 320px; overflow-y: auto; padding-right: 5px;">
             
-            <button class="menu-btn btn-ai" onclick="startAIGame()">
-                <div class="menu-btn-content">
-                    <span>🤖 AI無限生成モード</span>
-                    <span class="menu-desc">誰でも遊べる！AIが即興作成</span>
-                </div>
-                <span>✨</span>
-            </button>
-            
-            <p style="font-size:0.9rem; font-weight:bold; margin:15px 0 5px;">通常コース（オフライン）</p>
+            <p style="font-size:0.9rem; font-weight:bold; margin:15px 0 5px;">コース選択</p>
 
             <button class="menu-btn btn-std" onclick="startSpecialGame('std')">
                 <div class="menu-btn-content"><span>📘 一般常識</span><span class="menu-desc">レベル順に出題</span></div><span>▶</span>
@@ -196,11 +172,6 @@
     </div>
 
     <div id="game-screen" class="screen">
-        <div class="loading-overlay" id="loading-overlay">
-            <div class="spinner"></div>
-            <div>AIが問題を生成中...<br><span style="font-size:0.8rem">※10秒ほどかかる場合があります</span></div>
-        </div>
-
         <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
         
         <div class="question-box">
@@ -244,10 +215,6 @@
             <p style="font-size:1.5rem; font-weight:bold;">正解数: <span id="final-score">0</span> / <span id="total-count">0</span></p>
         </div>
         
-        <button id="ai-reload-btn" class="action-btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display:none; margin-bottom:10px;" onclick="startAIGame()">
-            ✨ 違う問題を生成する
-        </button>
-
         <button class="action-btn" onclick="location.reload()">タイトルに戻る</button>
     </div>
 </div>
@@ -337,8 +304,7 @@
     let currentPlayMode='choice', currentType='std', activeQuestionList=[], currentQuestionIndex=0, score=0;
 
     const menuScreen=document.getElementById('menu-screen'), gameScreen=document.getElementById('game-screen'), endScreen=document.getElementById('end-screen');
-    const loadingOverlay=document.getElementById('loading-overlay');
-
+    
     function setPlayMode(mode, btn) {
         currentPlayMode=mode; document.querySelectorAll('.play-mode-btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected');
     }
@@ -348,41 +314,6 @@
         else m.style.display='none';
     }
     function shuffleArray(arr) { for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];} return arr; }
-
-    // ★サーバー経由でAIを呼ぶ
-    async function startAIGame() {
-        initAudio();
-        loadingOverlay.style.display="flex";
-        currentType='ai'; document.body.className='ai-mode';
-        
-        try {
-            const res = await fetch('/api/quiz');
-            if(!res.ok) {
-                let errorMessage = "詳細不明";
-                try {
-                    const errorData = await res.json();
-                    errorMessage = errorData.error || errorData.details || "詳細不明";
-                } catch(parseError) {
-                    try {
-                        const errorText = await res.text();
-                        errorMessage = errorText || "詳細不明";
-                    } catch(textError) {
-                        errorMessage = `HTTP ${res.status}: ${res.statusText}`;
-                    }
-                }
-                throw new Error(errorMessage);
-            }
-            const data = await res.json();
-            
-            data.forEach(q => q.type = 'ai');
-            activeQuestionList = data;
-            loadingOverlay.style.display="none";
-            startGameCommon();
-        } catch(e) {
-            loadingOverlay.style.display="none";
-            alert("エラーが発生しました: " + (e.message || "詳細不明"));
-        }
-    }
 
     function startSpecialGame(type) {
         initAudio(); currentType=type; document.body.className = type+'-mode';
@@ -412,8 +343,8 @@
         document.getElementById('question-text').textContent = q.abbr;
         
         const badge=document.getElementById('info-badge');
-        badge.textContent = (currentType==='ai')?"AI生成": (q.level?"LEVEL "+q.level : (q.era==='showa'?"昭和":q.era==='heisei'?"平成":"令和"));
-        badge.style.background = (currentType==='ai')?"#8e44ad": (currentType==='police')?"#f1c40f": (currentType==='gal')?"#ff69b4": (currentType==='biz')?"#003366": (currentType==='otaku')?"#9b59b6": "#27ae60";
+        badge.textContent = (q.level?"LEVEL "+q.level : (q.era==='showa'?"昭和":q.era==='heisei'?"平成":"令和"));
+        badge.style.background = (currentType==='police')?"#f1c40f": (currentType==='gal')?"#ff69b4": (currentType==='biz')?"#003366": (currentType==='otaku')?"#9b59b6": "#27ae60";
         
         document.getElementById('progress-fill').style.width = `${(currentQuestionIndex/activeQuestionList.length)*100}%`;
         document.getElementById('result-area').style.display="none";
@@ -477,7 +408,6 @@
         if(currentQuestionIndex<activeQuestionList.length) showQuestion();
         else {
             gameScreen.classList.remove('active'); endScreen.classList.add('active');
-            document.getElementById('ai-reload-btn').style.display=(currentType==='ai')?'inline-block':'none';
             if(currentPlayMode!=='party') {
                 document.getElementById('scored-end-area').style.display='block';
                 document.getElementById('final-score').textContent=score;
