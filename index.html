@@ -142,6 +142,12 @@
         #result-msg { font-size: 1.6rem; font-weight: bold; margin: 0.5rem 0; }
         .correct { color: #27ae60; } .incorrect { color: #e74c3c; }
 
+        .spinner {
+            width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #8e44ad;
+            border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
         .progress-bar { width: 100%; background: #eee; height: 6px; border-radius: 3px; margin-bottom: 1.5rem; overflow: hidden; }
         .progress-fill { height: 100%; background: #27ae60; width: 0%; transition: width 0.3s; }
         .back-link { display: inline-block; margin-top: 25px; color: #999; text-decoration: underline; cursor: pointer; padding: 10px; }
@@ -217,6 +223,12 @@
                 <div class="menu-btn-content"><span>🎨 デザイン・制作</span><span class="menu-desc">UI/UX、CMYK...</span></div><span>▶</span>
             </button>
             
+            <div style="margin-top: 20px; border-top: 2px solid #eee; padding-top: 15px;">
+                <button class="menu-btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" onclick="showCreateScreen()">
+                    <div class="menu-btn-content"><span>✍️ クイズを作る (Beta)</span><span class="menu-desc">新しいジャンルを追加</span></div><span>✨</span>
+                </button>
+            </div>
+            
             <div id="gal-era-select" style="display:none; margin-top:5px;">
                 <button class="era-btn" onclick="startGalGame('showa')">📼 昭和ギャル</button>
                 <button class="era-btn" onclick="startGalGame('heisei')">🌺 平成ギャル</button>
@@ -270,6 +282,51 @@
         </div>
         
         <button class="action-btn" onclick="location.reload()">タイトルに戻る</button>
+    </div>
+
+    <div id="create-screen" class="screen">
+        <h2>✍️ 新しいクイズジャンルを作る</h2>
+        <p class="subtitle">GitHubにPull Requestを作成します</p>
+        
+        <div style="text-align: left; max-width: 100%;">
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">ジャンル名 (例: 宇宙・天文)</label>
+                <input type="text" id="genre-name" placeholder="宇宙・天文" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem;">
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">ジャンルID (例: space) - 英数字のみ</label>
+                <input type="text" id="genre-key" placeholder="space" pattern="[a-z0-9]+" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem;">
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">プライマリカラー</label>
+                <input type="color" id="color-primary" value="#3498db" style="width: 100%; height: 50px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer;">
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">背景色</label>
+                <input type="color" id="color-bg" value="#f0f4f8" style="width: 100%; height: 50px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer;">
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <label style="font-weight: bold;">問題リスト</label>
+                    <button type="button" class="action-btn" style="padding: 8px 15px; font-size: 0.9rem; max-width: 150px;" onclick="addQuestionInput()">+ 問題を追加</button>
+                </div>
+                <div id="questions-container" style="max-height: 300px; overflow-y: auto;">
+                    <!-- Questions will be added here dynamically -->
+                </div>
+            </div>
+            
+            <div id="create-loading" style="display: none; text-align: center; margin: 20px 0;">
+                <div class="spinner" style="margin: 0 auto 10px;"></div>
+                <p>Pull Requestを作成中...</p>
+            </div>
+            
+            <button class="action-btn" onclick="submitQuiz()" id="submit-btn" style="width: 100%; margin-bottom: 10px;">🚀 GitHubに送信</button>
+            <button class="action-btn" onclick="showMenuScreen()" style="width: 100%; background-color: #95a5a6;">← 戻る</button>
+        </div>
     </div>
 </div>
 
@@ -451,7 +508,7 @@
 
     let currentPlayMode='choice', currentType='std', activeQuestionList=[], currentQuestionIndex=0, score=0;
 
-    const menuScreen=document.getElementById('menu-screen'), gameScreen=document.getElementById('game-screen'), endScreen=document.getElementById('end-screen');
+    const menuScreen=document.getElementById('menu-screen'), gameScreen=document.getElementById('game-screen'), endScreen=document.getElementById('end-screen'), createScreen=document.getElementById('create-screen');
     
     function setPlayMode(mode, btn) {
         currentPlayMode=mode; document.querySelectorAll('.play-mode-btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected');
@@ -589,6 +646,152 @@
             else if(document.getElementById('result-area').style.display!=='none') nextQuestion();
         }
     });
+
+    // Create Quiz Screen Functions
+    function showCreateScreen() {
+        menuScreen.classList.remove('active');
+        gameScreen.classList.remove('active');
+        endScreen.classList.remove('active');
+        createScreen.classList.add('active');
+        
+        // Initialize with one question input
+        const container = document.getElementById('questions-container');
+        container.innerHTML = '';
+        addQuestionInput();
+    }
+    
+    function showMenuScreen() {
+        createScreen.classList.remove('active');
+        menuScreen.classList.add('active');
+    }
+    
+    function addQuestionInput() {
+        const container = document.getElementById('questions-container');
+        const questionIndex = container.children.length;
+        const questionDiv = document.createElement('div');
+        questionDiv.className = 'question-input-row';
+        questionDiv.style.cssText = 'margin-bottom: 15px; padding: 15px; border: 2px solid #ddd; border-radius: 8px; background: #f9f9f9;';
+        questionDiv.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <strong>問題 #${questionIndex + 1}</strong>
+                <button type="button" onclick="removeQuestionInput(this)" style="background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.8rem;">削除</button>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label style="display: block; margin-bottom: 5px; font-size: 0.9rem;">略語</label>
+                <input type="text" class="question-abbr" placeholder="例: NASA" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 5px;">
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label style="display: block; margin-bottom: 5px; font-size: 0.9rem;">正式名称 (カンマ区切りで複数可)</label>
+                <input type="text" class="question-formal" placeholder="例: National Aeronautics and Space Administration, アメリカ航空宇宙局" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 5px;">
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 5px; font-size: 0.9rem;">レベル (1-3)</label>
+                <input type="number" class="question-level" min="1" max="3" value="1" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 5px;">
+            </div>
+        `;
+        container.appendChild(questionDiv);
+    }
+    
+    function removeQuestionInput(btn) {
+        btn.closest('.question-input-row').remove();
+        // Renumber remaining questions
+        const container = document.getElementById('questions-container');
+        Array.from(container.children).forEach((div, index) => {
+            div.querySelector('strong').textContent = `問題 #${index + 1}`;
+        });
+    }
+    
+    async function submitQuiz() {
+        const genreName = document.getElementById('genre-name').value.trim();
+        const genreKey = document.getElementById('genre-key').value.trim();
+        const colorPrimary = document.getElementById('color-primary').value;
+        const colorBg = document.getElementById('color-bg').value;
+        
+        // Validation
+        if (!genreName || !genreKey) {
+            alert('ジャンル名とジャンルIDを入力してください。');
+            return;
+        }
+        
+        if (!/^[a-z0-9]+$/.test(genreKey)) {
+            alert('ジャンルIDは英数字（小文字）のみ使用できます。');
+            return;
+        }
+        
+        // Collect questions
+        const questionRows = document.querySelectorAll('.question-input-row');
+        const questions = [];
+        
+        for (const row of questionRows) {
+            const abbr = row.querySelector('.question-abbr').value.trim();
+            const formalStr = row.querySelector('.question-formal').value.trim();
+            const level = parseInt(row.querySelector('.question-level').value) || 1;
+            
+            if (!abbr || !formalStr) {
+                alert('すべての問題に略語と正式名称を入力してください。');
+                return;
+            }
+            
+            // Split formal names by comma
+            const formal = formalStr.split(',').map(f => f.trim()).filter(f => f);
+            if (formal.length === 0) {
+                alert('各問題に少なくとも1つの正式名称を入力してください。');
+                return;
+            }
+            
+            questions.push({ abbr, formal, level });
+        }
+        
+        if (questions.length === 0) {
+            alert('少なくとも1つの問題を追加してください。');
+            return;
+        }
+        
+        // Show loading
+        document.getElementById('create-loading').style.display = 'block';
+        document.getElementById('submit-btn').disabled = true;
+        
+        try {
+            const response = await fetch('/api/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    genreKey,
+                    genreName,
+                    colorPrimary,
+                    colorBg,
+                    questions,
+                }),
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to create PR');
+            }
+            
+            // Success
+            alert(`PR Created! URL: ${data.url}\n\nブラウザで開きます...`);
+            window.open(data.url, '_blank');
+            
+            // Reset form
+            document.getElementById('genre-name').value = '';
+            document.getElementById('genre-key').value = '';
+            document.getElementById('color-primary').value = '#3498db';
+            document.getElementById('color-bg').value = '#f0f4f8';
+            document.getElementById('questions-container').innerHTML = '';
+            addQuestionInput();
+            
+        } catch (error) {
+            console.error('Error:', error);
+            alert(`エラーが発生しました: ${error.message}`);
+        } finally {
+            document.getElementById('create-loading').style.display = 'none';
+            document.getElementById('submit-btn').disabled = false;
+        }
+    }
 </script>
 </body>
 </html>
