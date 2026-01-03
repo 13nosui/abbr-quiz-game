@@ -25,7 +25,8 @@
             --design-primary: #009688; --design-bg: #e0f2f1;
             /* 金融ジャンル追加 */
             --finance-primary: #d4af37; --finance-bg: #fff9e6;
-        }
+        
+            --movie-primary: #000000; --movie-bg: #ffffff;}
         * { box-sizing: border-box; }
         body {
             font-family: "Helvetica Neue", Arial, sans-serif;
@@ -38,6 +39,7 @@
         }
 
         /* モードスタイル */
+        body.movie-mode { background-color: var(--movie-bg); --primary-color: var(--movie-primary); }
         body.gal-mode { background-color: var(--gal-bg); --primary-color: var(--gal-primary); }
         body.police-mode { background-color: var(--police-bg); --primary-color: var(--police-primary); }
         body.biz-mode { background-color: var(--biz-bg); --primary-color: var(--biz-primary); }
@@ -211,6 +213,7 @@
             h1 { font-size: 1.3rem; }
             .abbr-text { font-size: 1.6rem; }
         }
+            .btn-movie { background-color: #000000; }
     </style>
 </head>
 <body>
@@ -292,6 +295,9 @@
                 <div class="menu-btn-content"><span>💰 金融・投資</span><span class="menu-desc">ユーザー投稿</span></div><span>▶</span>
             </button>
             
+            <button class="menu-btn btn-movie" onclick="startSpecialGame('movie')">
+                <div class="menu-btn-content"><span>🆕 映画・テレビ</span><span class="menu-desc">ユーザー投稿</span></div><span>▶</span>
+            </button>
             <div id="gal-era-select" style="display:none; margin-top:5px;">
                 <button class="era-btn" onclick="startGalGame('showa')">📼 昭和ギャル</button>
                 <button class="era-btn" onclick="startGalGame('heisei')">🌺 平成ギャル</button>
@@ -594,6 +600,9 @@
         { abbr: "ROE", formal: ["Return On Equity"], type: 'finance', level: 1 },
         { abbr: "TOPIX", formal: ["Tokyo Stock Price Index"], type: 'finance', level: 1 },
         { abbr: "GAFA", formal: ["Google Apple Facebook Amazon"], type: 'finance', level: 1 }
+    ,
+        // 映画・テレビ (User Submitted)
+        { abbr: "ロケハン", formal: ["ロケーション・ハンティング"], type: 'movie', level: 1 },
     ];
 
     let currentPlayMode='choice', currentType='std', activeQuestionList=[], currentQuestionIndex=0, score=0;
@@ -740,6 +749,7 @@
             (currentType==='media')?"#e91e63":
             (currentType==='design')?"#009688": 
             (currentType==='finance')?"#d4af37":
+            (currentType==='movie')?"#000000": 
             "#27ae60";
         
         document.getElementById('progress-fill').style.width = `${(currentQuestionIndex/activeQuestionList.length)*100}%`;
