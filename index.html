@@ -21,6 +21,7 @@
             --school-primary: #2ecc71; --school-bg: #e8f8f5;
             --game-primary: #6c5ce7; --game-bg: #ede7f6;
             --media-primary: #e91e63; --media-bg: #fce4ec;
+            --design-primary: #009688; --design-bg: #e0f2f1;
         }
         * { box-sizing: border-box; }
         body {
@@ -46,6 +47,7 @@
         body.school-mode { background-color: var(--school-bg); --primary-color: var(--school-primary); }
         body.game-mode { background-color: var(--game-bg); --primary-color: var(--game-primary); }
         body.media-mode { background-color: var(--media-bg); --primary-color: var(--media-primary); }
+        body.design-mode { background-color: var(--design-bg); --primary-color: var(--design-primary); }
 
         .container {
             background-color: white; padding: 2rem; border-radius: 16px;
@@ -83,6 +85,7 @@
         .btn-school { background-color: #2ecc71; }
         .btn-game { background-color: #6c5ce7; }
         .btn-media { background-color: #e91e63; }
+        .btn-design { background-color: #009688; }
 
         .play-mode-selector { display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; }
         .play-mode-btn {
@@ -209,6 +212,9 @@
             </button>
             <button class="menu-btn btn-media" onclick="startSpecialGame('media')">
                 <div class="menu-btn-content"><span>📺 テレビ・メディア</span><span class="menu-desc">CM、AD...</span></div><span>▶</span>
+            </button>
+            <button class="menu-btn btn-design" onclick="startSpecialGame('design')">
+                <div class="menu-btn-content"><span>🎨 デザイン・制作</span><span class="menu-desc">UI/UX、CMYK...</span></div><span>▶</span>
             </button>
             
             <div id="gal-era-select" style="display:none; margin-top:5px;">
@@ -428,7 +434,19 @@
         { abbr: "AD", formal: ["Assistant Director", "アシスタントディレクター"], type: 'media', level: 1 },
         { abbr: "OA", formal: ["On Air", "オンエア"], type: 'media', level: 1 },
         { abbr: "完パケ", formal: ["完全パッケージ"], type: 'media', level: 2 },
-        { abbr: "F1層", formal: ["Female 1", "フィーメイルワン"], type: 'media', level: 2 }
+        { abbr: "F1層", formal: ["Female 1", "フィーメイルワン"], type: 'media', level: 2 },
+        // DESIGN
+        { abbr: "UI", formal: ["User Interface", "ユーザーインターフェース"], type: 'design', level: 1 },
+        { abbr: "UX", formal: ["User Experience", "ユーザーエクスペリエンス"], type: 'design', level: 1 },
+        { abbr: "DTP", formal: ["Desktop Publishing", "デスクトップパブリッシング"], type: 'design', level: 1 },
+        { abbr: "RGB", formal: ["Red Green Blue", "レッドグリーンブルー"], type: 'design', level: 1 },
+        { abbr: "CMYK", formal: ["Cyan Magenta Yellow Key plate", "シアンマゼンタイエローキープレート"], type: 'design', level: 2 },
+        { abbr: "DPI", formal: ["Dots Per Inch", "ドットパーインチ"], type: 'design', level: 2 },
+        { abbr: "JPEG", formal: ["Joint Photographic Experts Group", "ジョイントフォトグラフィックエキスパーツグループ"], type: 'design', level: 2 },
+        { abbr: "PNG", formal: ["Portable Network Graphics", "ポータブルネットワークグラフィックス"], type: 'design', level: 2 },
+        { abbr: "SVG", formal: ["Scalable Vector Graphics", "スケーラブルベクターグラフィックス"], type: 'design', level: 3 },
+        { abbr: "CSS", formal: ["Cascading Style Sheets", "カスケーディングスタイルシート"], type: 'design', level: 3 },
+        { abbr: "PDF", formal: ["Portable Document Format", "ポータブルドキュメントフォーマット"], type: 'design', level: 3 },
     ];
 
     let currentPlayMode='choice', currentType='std', activeQuestionList=[], currentQuestionIndex=0, score=0;
@@ -487,6 +505,7 @@
             (currentType==='school')?"#2ecc71": 
             (currentType==='game')?"#6c5ce7": 
             (currentType==='media')?"#e91e63":
+            (currentType==='design')?"#009688":
             "#27ae60";
         
         document.getElementById('progress-fill').style.width = `${(currentQuestionIndex/activeQuestionList.length)*100}%`;
