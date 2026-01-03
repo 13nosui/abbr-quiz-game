@@ -168,6 +168,30 @@
             display:none; justify-content:center; align-items:center; flex-direction:column; z-index:100;
         }
 
+        /* レベルシステム用 */
+        .level-panel {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; padding: 12px; border-radius: 10px; margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .level-panel .level-text { font-size: 1.2rem; font-weight: bold; margin-bottom: 5px; }
+        .level-panel .exp-text { font-size: 0.85rem; opacity: 0.9; margin-bottom: 8px; }
+        .level-panel .level-progress { width: 100%; background: rgba(255,255,255,0.3); height: 8px; border-radius: 4px; overflow: hidden; }
+        .level-panel .level-progress-fill { height: 100%; background: #fff; width: 0%; transition: width 0.5s ease; }
+        
+        .exp-gain { color: #27ae60; font-weight: bold; font-size: 1.1rem; margin: 10px 0; }
+        .level-up-animation {
+            font-size: 2rem; font-weight: bold; color: #f39c12;
+            animation: levelUp 1s ease-in-out;
+            text-shadow: 0 0 10px rgba(243,156,18,0.5);
+            margin: 15px 0;
+        }
+        @keyframes levelUp {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
         @media (max-width: 480px) {
             .container { padding: 1.5rem 1rem; }
             h1 { font-size: 1.3rem; }
@@ -182,6 +206,14 @@
     <p class="subtitle">完全版！無限に遊べるよ</p>
 
     <div id="menu-screen" class="screen active">
+        
+        <div id="level-panel" class="level-panel">
+            <div class="level-text">Lv. <span id="menu-level">1</span></div>
+            <div class="exp-text">EXP: <span id="menu-exp">0</span> / <span id="menu-exp-needed">100</span></div>
+            <div class="level-progress">
+                <div id="menu-progress-fill" class="level-progress-fill"></div>
+            </div>
+        </div>
         
         <div style="margin-bottom: 15px; border-bottom:1px solid #eee; padding-bottom:10px;">
             <p style="font-size:0.8rem; color:#666; margin-bottom:5px;">遊び方</p>
@@ -345,6 +377,14 @@
         <h2>終了！</h2>
         <div id="scored-end-area">
             <p style="font-size:1.5rem; font-weight:bold;">正解数: <span id="final-score">0</span> / <span id="total-count">0</span></p>
+            <div id="exp-gain-display" class="exp-gain" style="display:none;">獲得経験値: +<span id="exp-gained">0</span> EXP</div>
+            <div id="level-up-display" class="level-up-animation" style="display:none;">LEVEL UP!</div>
+            <div style="margin: 15px 0;">
+                <div style="font-size: 0.9rem; color: #666; margin-bottom: 5px;">Lv. <span id="end-level">1</span> (EXP: <span id="end-exp">0</span> / <span id="end-exp-needed">100</span>)</div>
+                <div class="level-progress" style="background: #eee;">
+                    <div id="end-progress-fill" class="level-progress-fill" style="background: #27ae60;"></div>
+                </div>
+            </div>
         </div>
         
         <button class="action-btn" onclick="location.reload()">タイトルに戻る</button>
@@ -541,6 +581,84 @@
 
     let currentPlayMode='choice', currentType='std', activeQuestionList=[], currentQuestionIndex=0, score=0;
     let timerInterval=null, timerRemaining=10;
+    
+    // レベルシステム
+    let userLevel=1, currentExp=0;
+    
+    // localStorageからレベルデータを読み込み
+    function loadUserLevel() {
+        const savedLevel = localStorage.getItem('userLevel');
+        const savedExp = localStorage.getItem('currentExp');
+        if(savedLevel) userLevel = parseInt(savedLevel);
+        if(savedExp) currentExp = parseInt(savedExp);
+        updateLevelUI();
+    }
+    
+    // localStorageにレベルデータを保存
+    function saveUserLevel() {
+        localStorage.setItem('userLevel', userLevel);
+        localStorage.setItem('currentExp', currentExp);
+    }
+    
+    // レベルUIを更新（メニュー画面）
+    function updateLevelUI() {
+        const expNeeded = userLevel * 100;
+        const progress = (currentExp / expNeeded) * 100;
+        
+        document.getElementById('menu-level').textContent = userLevel;
+        document.getElementById('menu-exp').textContent = currentExp;
+        document.getElementById('menu-exp-needed').textContent = expNeeded;
+        document.getElementById('menu-progress-fill').style.width = progress + '%';
+    }
+    
+    // 経験値を追加してレベルアップ処理
+    function addExp(gainedExp) {
+        let totalExp = currentExp + gainedExp;
+        let leveledUp = false;
+        
+        while(true) {
+            const expNeeded = userLevel * 100;
+            if(totalExp >= expNeeded) {
+                totalExp -= expNeeded;
+                userLevel++;
+                leveledUp = true;
+            } else {
+                break;
+            }
+        }
+        
+        currentExp = totalExp;
+        saveUserLevel();
+        return { leveledUp, gainedExp };
+    }
+    
+    // 結果画面のレベルUIを更新
+    function updateEndLevelUI(expGained, leveledUp) {
+        const expNeeded = userLevel * 100;
+        const progress = (currentExp / expNeeded) * 100;
+        
+        document.getElementById('end-level').textContent = userLevel;
+        document.getElementById('end-exp').textContent = currentExp;
+        document.getElementById('end-exp-needed').textContent = expNeeded;
+        document.getElementById('end-progress-fill').style.width = progress + '%';
+        
+        // 獲得経験値表示
+        if(expGained > 0) {
+            document.getElementById('exp-gained').textContent = expGained;
+            document.getElementById('exp-gain-display').style.display = 'block';
+        }
+        
+        // レベルアップ表示（少し遅延させて派手に）
+        if(leveledUp) {
+            setTimeout(() => {
+                document.getElementById('level-up-display').style.display = 'block';
+                playSound('correct'); // レベルアップ音
+            }, 300);
+        }
+    }
+    
+    // ページ読み込み時にレベルデータを読み込む
+    loadUserLevel();
 
     const menuScreen=document.getElementById('menu-screen'), gameScreen=document.getElementById('game-screen'), endScreen=document.getElementById('end-screen'), createScreen=document.getElementById('create-screen');
     
@@ -576,6 +694,11 @@
         document.getElementById('choice-area').style.display=(currentPlayMode==='choice')?'block':'none';
         document.getElementById('solo-area').style.display=(currentPlayMode==='solo')?'block':'none';
         document.getElementById('party-area').style.display=(currentPlayMode==='party')?'block':'none';
+        
+        // 結果画面の表示をリセット
+        document.getElementById('exp-gain-display').style.display='none';
+        document.getElementById('level-up-display').style.display='none';
+        
         showQuestion();
     }
 
@@ -753,6 +876,17 @@
                 document.getElementById('scored-end-area').style.display='block';
                 document.getElementById('final-score').textContent=score;
                 document.getElementById('total-count').textContent=activeQuestionList.length;
+                
+                // 経験値計算とレベルアップ処理
+                const totalQuestions = activeQuestionList.length;
+                let expGained = score * 20; // 正解数 × 20pt
+                if(score === totalQuestions && totalQuestions > 0) {
+                    expGained += 50; // 全問正解ボーナス +50pt
+                }
+                
+                const { leveledUp } = addExp(expGained);
+                updateEndLevelUI(expGained, leveledUp);
+                updateLevelUI(); // メニュー画面のUIも更新
             } else {
                 document.getElementById('scored-end-area').style.display='none';
             }
