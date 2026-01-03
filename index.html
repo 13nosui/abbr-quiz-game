@@ -186,6 +186,13 @@
             text-shadow: 0 0 10px rgba(243,156,18,0.5);
             margin: 15px 0;
         }
+        .btn-share {
+            background-color: #000; /* Xのブランドカラー */
+            color: #fff;
+            margin-top: 15px;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .btn-share:hover { opacity: 0.8; }
         @keyframes levelUp {
             0% { transform: scale(0.5); opacity: 0; }
             50% { transform: scale(1.2); }
@@ -387,6 +394,9 @@
             </div>
         </div>
         
+        <button class="action-btn btn-share" onclick="shareResultOnX()">
+            <span>𝕏 で結果をポストする</span>
+        </button>
         <button class="action-btn" onclick="location.reload()">タイトルに戻る</button>
     </div>
 </div>
@@ -935,6 +945,25 @@
         } finally {
             loading.style.display="none";
         }
+    }
+
+    /* シェア機能 */
+    function shareResultOnX() {
+        const score = document.getElementById('final-score').textContent;
+        const total = document.getElementById('total-count').textContent;
+        const lv = userLevel; // 現在のレベル変数
+        
+        // 投稿するテキストを作成
+        const text = `略語正式名称クイズで ${score}/${total} 問正解しました！\n現在のレベル: Lv.${lv}\n#略語クイズ #個人開発`;
+        
+        // 現在のページURL (公開時は実際のURLに書き換わります)
+        const url = window.location.href;
+        
+        // Xの投稿画面を開くURLを作成
+        const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+        
+        // 別タブで開く
+        window.open(shareUrl, '_blank');
     }
     
     document.addEventListener("keypress", (e)=>{
