@@ -25,7 +25,8 @@
             --design-primary: #009688; --design-bg: #e0f2f1;
             /* 金融ジャンル追加 */
             --finance-primary: #d4af37; --finance-bg: #fff9e6;
-        }
+        
+            --music-primary: #9b59b6; --music-bg: #f3e5f5;}
         * { box-sizing: border-box; }
         body {
             font-family: "Helvetica Neue", Arial, sans-serif;
@@ -38,6 +39,7 @@
         }
 
         /* モードスタイル */
+        body.music-mode { background-color: var(--music-bg); --primary-color: var(--music-primary); }
         body.gal-mode { background-color: var(--gal-bg); --primary-color: var(--gal-primary); }
         body.police-mode { background-color: var(--police-bg); --primary-color: var(--police-primary); }
         body.biz-mode { background-color: var(--biz-bg); --primary-color: var(--biz-primary); }
@@ -167,6 +169,7 @@
             h1 { font-size: 1.3rem; }
             .abbr-text { font-size: 1.6rem; }
         }
+            .btn-music { background-color: #9b59b6; }
     </style>
 </head>
 <body>
@@ -240,6 +243,9 @@
                 <div class="menu-btn-content"><span>💰 金融・投資</span><span class="menu-desc">ユーザー投稿</span></div><span>▶</span>
             </button>
             
+            <button class="menu-btn btn-music" onclick="startSpecialGame('music')">
+                <div class="menu-btn-content"><span>🆕 音楽・DTM</span><span class="menu-desc">ユーザー投稿</span></div><span>▶</span>
+            </button>
             <div id="gal-era-select" style="display:none; margin-top:5px;">
                 <button class="era-btn" onclick="startGalGame('showa')">📼 昭和ギャル</button>
                 <button class="era-btn" onclick="startGalGame('heisei')">🌺 平成ギャル</button>
@@ -530,6 +536,18 @@
         { abbr: "ROE", formal: ["Return On Equity"], type: 'finance', level: 1 },
         { abbr: "TOPIX", formal: ["Tokyo Stock Price Index"], type: 'finance', level: 1 },
         { abbr: "GAFA", formal: ["Google Apple Facebook Amazon"], type: 'finance', level: 1 }
+    ,
+        // 音楽・DTM (User Submitted)
+        { abbr: "BPM", formal: ["Beats Per Minute"], type: 'music', level: 1 },
+        { abbr: "DAW", formal: ["Digital Audio Workstation"], type: 'music', level: 1 },
+        { abbr: "EQ", formal: ["Equalizer"], type: 'music', level: 1 },
+        { abbr: "BGM", formal: ["Background Music"], type: 'music', level: 1 },
+        { abbr: "MV", formal: ["Music Video"], type: 'music', level: 1 },
+        { abbr: "CD", formal: ["Compact Disc"], type: 'music', level: 1 },
+        { abbr: "MC", formal: ["Master of Ceremonies"], type: 'music', level: 1 },
+        { abbr: "PA", formal: ["Public Address"], type: 'music', level: 1 },
+        { abbr: "SE", formal: ["Sound Effect"], type: 'music', level: 1 },
+        { abbr: "J-POP", formal: ["Japanese Popular Music"], type: 'music', level: 1 },
     ];
 
     let currentPlayMode='choice', currentType='std', activeQuestionList=[], currentQuestionIndex=0, score=0;
@@ -591,6 +609,7 @@
             (currentType==='media')?"#e91e63":
             (currentType==='design')?"#009688": 
             (currentType==='finance')?"#d4af37":
+            (currentType==='music')?"#9b59b6": 
             "#27ae60";
         
         document.getElementById('progress-fill').style.width = `${(currentQuestionIndex/activeQuestionList.length)*100}%`;
