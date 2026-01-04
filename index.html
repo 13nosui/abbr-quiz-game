@@ -431,10 +431,15 @@
                 </div>
             </div>
         </div>
+
+        <button class="action-btn" onclick="document.getElementById('continue-modal').style.display='flex'" style="background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%); margin-bottom: 10px;">
+            <span>🚀 スコア継続して次のジャンルへ</span>
+        </button>
         
         <button class="action-btn btn-share" onclick="shareResultOnX()">
             <span>𝕏 で結果をポストする</span>
         </button>
+
         <div class="ranking-form" id="register-area">
             <p style="font-size:0.9rem; margin-bottom:5px;">ランキングに登録する</p>
             <div style="display:flex; gap:5px;">
@@ -452,6 +457,37 @@
         <div id="ranking-loading">読み込み中...</div>
         <ul id="ranking-list" class="ranking-list"></ul>
         <button class="action-btn" onclick="closeRanking()">閉じる</button>
+    </div>
+</div>
+<div id="continue-modal" class="modal-overlay">
+    <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
+        <div class="close-btn" onclick="document.getElementById('continue-modal').style.display='none'">×</div>
+        <h2 style="margin-top:0; color:#2c3e50;">🚀 次のジャンルを選択</h2>
+        <p style="font-size:0.9rem; color:#666;">現在のスコアを引き継いで挑戦します！</p>
+        
+        <div style="text-align: left; display: grid; gap: 10px;">
+            <button class="menu-btn btn-std" onclick="startSpecialGame('std', true)">
+                <div class="menu-btn-content"><span>📘 一般常識</span></div><span>▶</span>
+            </button>
+            <button class="menu-btn btn-biz" onclick="startSpecialGame('biz', true)">
+                <div class="menu-btn-content"><span>💼 ビジネス・IT</span></div><span>▶</span>
+            </button>
+            <button class="menu-btn btn-media" onclick="startSpecialGame('media', true)">
+                <div class="menu-btn-content"><span>📺 テレビ・メディア</span></div><span>▶</span>
+            </button>
+            <button class="menu-btn btn-finance" onclick="startSpecialGame('finance', true)">
+                <div class="menu-btn-content"><span>💰 金融・投資</span></div><span>▶</span>
+            </button>
+            <button class="menu-btn btn-game" onclick="startSpecialGame('game', true)">
+                <div class="menu-btn-content"><span>🎮 ゲーム用語</span></div><span>▶</span>
+            </button>
+            <button class="menu-btn btn-design" onclick="startSpecialGame('design', true)">
+                <div class="menu-btn-content"><span>🎨 デザイン・制作</span></div><span>▶</span>
+            </button>
+            <button class="menu-btn btn-medical" onclick="startSpecialGame('medical', true)">
+                <div class="menu-btn-content"><span>🏥 医療・病院</span></div><span>▶</span>
+            </button>
+            </div>
     </div>
 </div>
 <script>
@@ -735,32 +771,54 @@
     }
     function shuffleArray(arr) { for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];} return arr; }
 
-    function startSpecialGame(type) {
-        initAudio(); currentType=type; document.body.className = type+'-mode';
-        const target = masterQuizData.filter(q=>q.type===type);
-        activeQuestionList = shuffleArray(target).slice(0,10);
-        if(activeQuestionList.length===0) activeQuestionList=masterQuizData.slice(0,5);
-        startGameCommon();
+    // 引数に isContinue を追加 (trueならスコアを引き継ぐ)
+    function startSpecialGame(type, isContinue = false) {
+        initAudio(); 
+        currentType = type; 
+        document.body.className = type + '-mode';
+        
+        const target = masterQuizData.filter(q => q.type === type);
+        activeQuestionList = shuffleArray(target).slice(0, 10);
+        if (activeQuestionList.length === 0) activeQuestionList = masterQuizData.slice(0, 5);
+        
+        startGameCommon(isContinue);
     }
-    function startGalGame(era) {
-        initAudio(); currentType='gal'; document.body.className='gal-mode';
-        const target = masterQuizData.filter(q=>q.type==='gal'&&q.era===era);
-        activeQuestionList = shuffleArray(target).slice(0,10);
-        startGameCommon();
+    
+    function startGalGame(era, isContinue = false) {
+        initAudio(); 
+        currentType = 'gal'; 
+        document.body.className = 'gal-mode';
+        
+        const target = masterQuizData.filter(q => q.type === 'gal' && q.era === era);
+        activeQuestionList = shuffleArray(target).slice(0, 10);
+        
+        startGameCommon(isContinue);
     }
 
-    function startGameCommon() {
-        currentQuestionIndex=0; score=0;
-        stopTimer(); // タイマーをリセット
-        menuScreen.classList.remove('active'); endScreen.classList.remove('active'); createScreen.classList.remove('active');
-        gameScreen.classList.add('active');
-        document.getElementById('choice-area').style.display=(currentPlayMode==='choice')?'block':'none';
-        document.getElementById('solo-area').style.display=(currentPlayMode==='solo')?'block':'none';
-        document.getElementById('party-area').style.display=(currentPlayMode==='party')?'block':'none';
+    function startGameCommon(isContinue) {
+        currentQuestionIndex = 0;
         
-        // 結果画面の表示をリセット
-        document.getElementById('exp-gain-display').style.display='none';
-        document.getElementById('level-up-display').style.display='none';
+        // ★修正ポイント：続きからでない場合のみスコアをリセット
+        if (!isContinue) {
+            score = 0;
+        }
+        
+        stopTimer(); 
+        menuScreen.classList.remove('active'); 
+        endScreen.classList.remove('active'); 
+        createScreen.classList.remove('active');
+        
+        // 継続選択モーダルが開いていれば閉じる
+        document.getElementById('continue-modal').style.display = 'none';
+
+        gameScreen.classList.add('active');
+        document.getElementById('choice-area').style.display = (currentPlayMode === 'choice') ? 'block' : 'none';
+        document.getElementById('solo-area').style.display = (currentPlayMode === 'solo') ? 'block' : 'none';
+        document.getElementById('party-area').style.display = (currentPlayMode === 'party') ? 'block' : 'none';
+        
+        // 結果画面の表示リセット
+        document.getElementById('exp-gain-display').style.display = 'none';
+        document.getElementById('level-up-display').style.display = 'none';
         
         showQuestion();
     }
