@@ -1028,7 +1028,7 @@
     });
 
     /* --- ランキングシステム --- */
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwOTU1F4KoWNjdWshT9v7ZNXxs7jPRl-41vzJimc4Wa-ntvX0FL0p4q9U19IJj_GxfQkw/exec";
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyegioLOVtJNZ7g8bRX7welIxEkPSilfBHcFXm3sBumW0pbeuCoTL85XoHTWdcXypMRlQ/exec";
 
     function openRanking() {
         document.getElementById('ranking-modal').style.display = 'flex';
@@ -1071,6 +1071,15 @@
         }
     }
 
+    // ページ読み込み時に名前を復元
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedName = localStorage.getItem('quizPlayerName');
+        if(savedName) {
+            const input = document.getElementById('player-name');
+            if(input) input.value = savedName;
+        }
+    });
+
     async function registerScore() {
         const name = document.getElementById('player-name').value;
         const scoreVal = document.getElementById('final-score').textContent; // 現在のスコア
@@ -1080,6 +1089,8 @@
 
         const btn = document.querySelector('#register-area button');
         btn.disabled = true; btn.textContent = "送信中...";
+
+        localStorage.setItem('quizPlayerName', name);
 
         try {
             // CORS回避のため、no-corsではなくredirectを利用するか、単純なPOSTを送る
