@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>略語正式名称クイズ（完全版）</title>
+    <title>略語正式名称クイズ</title>
     <style>
         /* --- ベース設定 --- */
         :root {
@@ -25,8 +25,7 @@
             --design-primary: #009688; --design-bg: #e0f2f1;
             /* 金融ジャンル追加 */
             --finance-primary: #d4af37; --finance-bg: #fff9e6;
-        
-            --movie-primary: #000000; --movie-bg: #ffffff;}
+        }
         * { box-sizing: border-box; }
         body {
             font-family: "Helvetica Neue", Arial, sans-serif;
@@ -39,7 +38,6 @@
         }
 
         /* モードスタイル */
-        body.movie-mode { background-color: var(--movie-bg); --primary-color: var(--movie-primary); }
         body.gal-mode { background-color: var(--gal-bg); --primary-color: var(--gal-primary); }
         body.police-mode { background-color: var(--police-bg); --primary-color: var(--police-primary); }
         body.biz-mode { background-color: var(--biz-bg); --primary-color: var(--biz-primary); }
@@ -202,6 +200,34 @@
             max-width: 300px;
         }
         .btn-share:hover { opacity: 0.8; }
+        /* ランキング用モーダル */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 1000;
+            display: none; justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: white; width: 90%; max-width: 400px; max-height: 80vh;
+            border-radius: 16px; padding: 20px; text-align: center;
+            overflow-y: auto; position: relative;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .ranking-list { list-style: none; padding: 0; margin: 15px 0; text-align: left; }
+        .ranking-item {
+            display: flex; justify-content: space-between; padding: 10px;
+            border-bottom: 1px solid #eee; font-size: 0.95rem;
+        }
+        .rank-num { font-weight: bold; width: 30px; color: #7f8c8d; }
+        .rank-1 .rank-num { color: #f1c40f; font-size: 1.2rem; } /* 1位は金 */
+        .rank-2 .rank-num { color: #95a5a6; } /* 2位は銀 */
+        .rank-3 .rank-num { color: #cd7f32; } /* 3位は銅 */
+        .rank-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .rank-score { font-weight: bold; color: var(--primary-color); }
+        
+        /* 登録フォーム */
+        .ranking-form { margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ccc; }
+        .btn-rank { background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%); color: white; }
+        .close-btn { position: absolute; top: 10px; right: 15px; font-size: 1.5rem; cursor: pointer; color: #999; }
         @keyframes levelUp {
             0% { transform: scale(0.5); opacity: 0; }
             50% { transform: scale(1.2); }
@@ -213,7 +239,6 @@
             h1 { font-size: 1.3rem; }
             .abbr-text { font-size: 1.6rem; }
         }
-            .btn-movie { background-color: #000000; }
     </style>
 </head>
 <body>
@@ -234,6 +259,9 @@
         
         <div style="margin-bottom: 15px; border-bottom:1px solid #eee; padding-bottom:10px;">
             <p style="font-size:0.8rem; color:#666; margin-bottom:5px;">遊び方</p>
+            <button class="menu-btn btn-rank" onclick="openRanking()" style="margin-bottom:15px;">
+                <div class="menu-btn-content"><span>🏆 オンラインランキング</span><span class="menu-desc">上位を目指そう！</span></div><span>👑</span>
+            </button>
             <div class="play-mode-selector">
                 <button class="play-mode-btn selected" onclick="setPlayMode('choice', this)">🤔 4択</button>
                 <button class="play-mode-btn" onclick="setPlayMode('solo', this)">⌨️ 入力</button>
@@ -295,9 +323,6 @@
                 <div class="menu-btn-content"><span>💰 金融・投資</span><span class="menu-desc">ユーザー投稿</span></div><span>▶</span>
             </button>
             
-            <button class="menu-btn btn-movie" onclick="startSpecialGame('movie')">
-                <div class="menu-btn-content"><span>🆕 映画・テレビ</span><span class="menu-desc">ユーザー投稿</span></div><span>▶</span>
-            </button>
             <div id="gal-era-select" style="display:none; margin-top:5px;">
                 <button class="era-btn" onclick="startGalGame('showa')">📼 昭和ギャル</button>
                 <button class="era-btn" onclick="startGalGame('heisei')">🌺 平成ギャル</button>
@@ -410,10 +435,25 @@
         <button class="action-btn btn-share" onclick="shareResultOnX()">
             <span>𝕏 で結果をポストする</span>
         </button>
+        <div class="ranking-form" id="register-area">
+            <p style="font-size:0.9rem; margin-bottom:5px;">ランキングに登録する</p>
+            <div style="display:flex; gap:5px;">
+                <input type="text" id="player-name" placeholder="名前 (8文字以内)" maxlength="8" style="margin:0; flex:1;">
+                <button class="action-btn" onclick="registerScore()" style="margin:0; width:auto; font-size:0.9rem; padding:10px 15px;">送信</button>
+            </div>
+        </div>
         <button class="action-btn" onclick="location.reload()">タイトルに戻る</button>
     </div>
 </div>
-
+<div id="ranking-modal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="close-btn" onclick="closeRanking()">×</div>
+        <h2 style="margin-top:0; color:#f39c12;">🏆 ランキング</h2>
+        <div id="ranking-loading">読み込み中...</div>
+        <ul id="ranking-list" class="ranking-list"></ul>
+        <button class="action-btn" onclick="closeRanking()">閉じる</button>
+    </div>
+</div>
 <script>
     let audioCtx;
     function initAudio() { if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)(); if(audioCtx.state==='suspended') audioCtx.resume(); }
@@ -600,9 +640,6 @@
         { abbr: "ROE", formal: ["Return On Equity"], type: 'finance', level: 1 },
         { abbr: "TOPIX", formal: ["Tokyo Stock Price Index"], type: 'finance', level: 1 },
         { abbr: "GAFA", formal: ["Google Apple Facebook Amazon"], type: 'finance', level: 1 }
-    ,
-        // 映画・テレビ (User Submitted)
-        { abbr: "ロケハン", formal: ["ロケーション・ハンティング"], type: 'movie', level: 1 },
     ];
 
     let currentPlayMode='choice', currentType='std', activeQuestionList=[], currentQuestionIndex=0, score=0;
@@ -749,7 +786,6 @@
             (currentType==='media')?"#e91e63":
             (currentType==='design')?"#009688": 
             (currentType==='finance')?"#d4af37":
-            (currentType==='movie')?"#000000": 
             "#27ae60";
         
         document.getElementById('progress-fill').style.width = `${(currentQuestionIndex/activeQuestionList.length)*100}%`;
@@ -990,6 +1026,84 @@
             else if(document.getElementById('result-area').style.display!=='none') nextQuestion();
         }
     });
+
+    /* --- ランキングシステム --- */
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwOTU1F4KoWNjdWshT9v7ZNXxs7jPRl-41vzJimc4Wa-ntvX0FL0p4q9U19IJj_GxfQkw/exec";
+
+    function openRanking() {
+        document.getElementById('ranking-modal').style.display = 'flex';
+        fetchRanking();
+    }
+    
+    function closeRanking() {
+        document.getElementById('ranking-modal').style.display = 'none';
+    }
+
+    async function fetchRanking() {
+        const list = document.getElementById('ranking-list');
+        const loading = document.getElementById('ranking-loading');
+        list.innerHTML = '';
+        loading.style.display = 'block';
+
+        try {
+            const res = await fetch(GAS_API_URL);
+            const data = await res.json();
+            
+            loading.style.display = 'none';
+            if(data.length === 0) {
+                list.innerHTML = '<p>まだデータがありません</p>';
+                return;
+            }
+
+            data.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.className = `ranking-item rank-${index + 1}`;
+                li.innerHTML = `
+                    <span class="rank-num">${index + 1}</span>
+                    <span class="rank-name">${escapeHtml(item.name)}</span>
+                    <span class="rank-score">${item.score}問</span>
+                `;
+                list.appendChild(li);
+            });
+        } catch(e) {
+            loading.textContent = "読み込みエラー";
+            console.error(e);
+        }
+    }
+
+    async function registerScore() {
+        const name = document.getElementById('player-name').value;
+        const scoreVal = document.getElementById('final-score').textContent; // 現在のスコア
+        
+        if(!name) return alert("名前を入力してください");
+        if(scoreVal == 0) return alert("0点の記録は登録できません");
+
+        const btn = document.querySelector('#register-area button');
+        btn.disabled = true; btn.textContent = "送信中...";
+
+        try {
+            // CORS回避のため、no-corsではなくredirectを利用するか、単純なPOSTを送る
+            // GAS側でContentService.createTextOutputを返していればfetchで受け取れる
+            await fetch(GAS_API_URL, {
+                method: 'POST',
+                // Google Apps Scriptの仕様上、application/jsonではなくtext/plainとして送るのがコツ
+                body: JSON.stringify({ name: name, score: scoreVal })
+            });
+            
+            alert("登録しました！");
+            document.getElementById('register-area').style.display = 'none'; // 登録エリアを隠す
+            openRanking(); // ランキング画面を開く
+        } catch(e) {
+            alert("送信に失敗しました");
+            btn.disabled = false; btn.textContent = "送信";
+        }
+    }
+
+    // XSS対策
+    function escapeHtml(str) {
+        if(!str) return "";
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
 </script>
 </body>
 </html>
