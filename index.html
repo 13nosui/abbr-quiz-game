@@ -1028,7 +1028,7 @@
     });
 
     /* --- ランキングシステム --- */
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyegioLOVtJNZ7g8bRX7welIxEkPSilfBHcFXm3sBumW0pbeuCoTL85XoHTWdcXypMRlQ/exec";
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwERimGKxGeeAzldV23rvo4vWJhdNmeFnecgamXPViEUcO0OHGxhclwLvG3SSZwMJ5NOw/exec";
 
     function openRanking() {
         document.getElementById('ranking-modal').style.display = 'flex';
@@ -1097,7 +1097,7 @@
             // GAS側でContentService.createTextOutputを返していればfetchで受け取れる
             await fetch(GAS_API_URL, {
                 method: 'POST',
-                // Google Apps Scriptの仕様上、application/jsonではなくtext/plainとして送るのがコツ
+                headers: { "Content-Type": "text/plain" }, // ★これを追加して明示的にテキストとして送る
                 body: JSON.stringify({ name: name, score: scoreVal })
             });
             
